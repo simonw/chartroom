@@ -232,7 +232,9 @@ _common_options = [
             "Example: --sql mydb.sqlite 'SELECT name, count FROM items'"
         ),
     ),
-    click.option("--title", default=None, help="Chart title"),
+    click.option(
+        "--title", default=None, help="Chart title, also prepended to generated alt text"
+    ),
     click.option("--xlabel", default=None, help="X-axis label"),
     click.option("--ylabel", default=None, help="Y-axis label"),
     click.option("--width", default=10.0, type=float, help="Figure width in inches"),
@@ -264,7 +266,7 @@ _common_options = [
             "Override the auto-generated alt text. "
             "Ignored when -f is path (the default). "
             "When omitted, a description is generated from the chart type "
-            "and data. If --title is set it is prepended to the description."
+            "and data."
         ),
     ),
 ]
