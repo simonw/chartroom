@@ -29,4 +29,4 @@ CI = "https://github.com/simonw/chartroom/actions"
 chartroom = "chartroom.cli:cli"
 
 [dependency-groups]
-dev = ["pytest"]
+dev = ["pytest", "inline-snapshot"]
