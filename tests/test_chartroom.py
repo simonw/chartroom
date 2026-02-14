@@ -35,6 +35,16 @@ def test_bar_help():
     assert "-o" in result.output
 
 
+def test_styles():
+    runner = CliRunner()
+    result = runner.invoke(cli, ["styles"])
+    assert result.exit_code == 0
+    assert "ggplot" in result.output
+    assert "dark_background" in result.output
+    for line in result.output.strip().split("\n"):
+        assert not line.startswith("_")
+
+
 # --- Bar chart ---
 
 
