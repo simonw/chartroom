@@ -1,6 +1,6 @@
 [project]
 name = "chartroom"
-version = "0.1"
+version = "0.2"
 description = "CLI tool for creating charts"
 readme = "README.md"
 authors = [{name = "Simon Willison"}]
