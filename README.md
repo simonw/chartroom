@@ -12,6 +12,14 @@ CLI tool for creating charts from CSV, TSV, JSON, JSONL, or SQLite data using [m
 ```bash
 pip install chartroom
 ```
+Or:
+```bash
+uv tool install chartroom
+```
+Or run it directly with:
+```bash
+uvx chartroom
+```
 
 ## Demo
 
