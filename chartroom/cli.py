@@ -216,7 +216,13 @@ _common_options = [
         "--jsonl", "jsonl", is_flag=True, help="Parse input as newline-delimited JSON"
     ),
     click.option(
-        "--sql", nargs=2, default=None, help="DATABASE QUERY - query a SQLite database"
+        "--sql",
+        nargs=2,
+        default=None,
+        help=(
+            "Query a SQLite database. Takes two arguments: DATABASE QUERY. "
+            "Example: --sql mydb.sqlite 'SELECT name, count FROM items'"
+        ),
     ),
     click.option("--title", default=None, help="Chart title"),
     click.option("--xlabel", default=None, help="X-axis label"),
@@ -233,9 +239,26 @@ _common_options = [
         "output_format",
         default="path",
         type=click.Choice(["path", "markdown", "html", "json", "alt"]),
-        help="Output format (default: path)",
+        help=(
+            "How to format stdout. "
+            "path (default): absolute file path. "
+            "markdown: ![alt](path). "
+            "html: <img src=path alt=...>. "
+            "json: {\"path\": ..., \"alt\": ...}. "
+            "alt: just the alt text, no path. "
+            "Alt text is auto-generated from chart type and data unless --alt is given."
+        ),
     ),
-    click.option("--alt", default=None, help="Alt text for the generated image"),
+    click.option(
+        "--alt",
+        default=None,
+        help=(
+            "Override the auto-generated alt text. "
+            "Ignored when -f is path (the default). "
+            "When omitted, alt text is derived from --title if set, "
+            "otherwise generated from the chart type and data columns."
+        ),
+    ),
 ]
 
 
@@ -351,7 +374,16 @@ def bar(
     output_format,
     alt,
 ):
-    "Create a bar chart"
+    """Create a bar chart from columnar data.
+
+    \b
+    Examples:
+      chartroom bar --csv data.csv
+      chartroom bar --csv data.csv -x region -y revenue -o sales.png
+      chartroom bar --csv -x name -y q1 -y q2 data.csv
+      cat data.csv | chartroom bar --csv -f markdown
+      chartroom bar --sql mydb.sqlite "SELECT name, count FROM items"
+    """
     _run_chart(
         "bar",
         _render_bar_wrapper,
@@ -398,7 +430,15 @@ def line(
     output_format,
     alt,
 ):
-    "Create a line chart"
+    """Create a line chart from columnar data.
+
+    \b
+    Examples:
+      chartroom line --csv data.csv
+      chartroom line --csv data.csv -x month -y revenue
+      chartroom line --csv -x date -y temp -y humidity data.csv
+      chartroom line --csv data.csv -f json
+    """
     _run_chart(
         "line",
         _render_line_wrapper,
@@ -445,7 +485,14 @@ def scatter(
     output_format,
     alt,
 ):
-    "Create a scatter plot"
+    """Create a scatter plot from columnar data.
+
+    \b
+    Examples:
+      chartroom scatter --csv data.csv
+      chartroom scatter --csv data.csv -x height -y weight
+      chartroom scatter --csv data.csv -f html --alt "Height vs Weight"
+    """
     _run_chart(
         "scatter",
         _render_scatter_wrapper,
@@ -492,7 +539,16 @@ def pie(
     output_format,
     alt,
 ):
-    "Create a pie chart"
+    """Create a pie chart from columnar data.
+
+    Uses the first -y column for slice sizes. Labels come from the -x column.
+
+    \b
+    Examples:
+      chartroom pie --csv data.csv
+      chartroom pie --csv data.csv -x category -y amount
+      chartroom pie --csv data.csv -f markdown
+    """
     _run_chart(
         "pie",
         _render_pie_wrapper,
@@ -541,7 +597,16 @@ def histogram(
     output_format,
     alt,
 ):
-    "Create a histogram"
+    """Create a histogram showing the distribution of a numeric column.
+
+    Requires -y to specify the column. Use --bins to control bucket count.
+
+    \b
+    Examples:
+      chartroom histogram --csv -y score data.csv
+      chartroom histogram --csv -y score data.csv --bins 20
+      chartroom histogram --csv -y score data.csv -f alt
+    """
     _run_chart(
         "histogram",
         _render_histogram_wrapper,
