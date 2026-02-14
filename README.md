@@ -100,6 +100,20 @@ chartroom bar --csv data.csv -f alt
 
 When `--alt` is omitted, alt text is auto-generated from the chart title (if set) or from the chart type and data. Small datasets get all values listed; larger datasets get a summary with range and extremes.
 
+### Alt text generation
+
+Chartroom automatically generates descriptive alt text for every chart, making output accessible to screen readers and useful in documentation. You can use `--alt` to provide your own alt text, or let chartroom generate it from the chart type and data.
+
+The auto-generated alt text adapts to both chart type and dataset size:
+
+- **Bar, line, and scatter charts** — Small datasets (6 rows or fewer) list every value (e.g. `Bar chart of value by name — alice: 10, bob: 20, charlie: 15`). Larger datasets summarize the count, range, and extremes (e.g. `Bar chart of population by city. 10 points, ranging from 17118 (Dhaka) to 37400 (Tokyo)`). Multiple y-columns are noted as additional series.
+- **Pie charts** — Small datasets show each category with its percentage (e.g. `Pie chart showing Rent (57%), Food (19%), Transport (10%), Other (14%)`). Larger datasets list the top 3 categories by share.
+- **Histograms** — Small datasets list all values. Larger datasets describe the distribution range (e.g. `Histogram of 10 score values ranging from 76 to 95`).
+
+If a `--title` is set, it is prepended to the generated alt text (e.g. `Team Scores. Bar chart of value by name — alice: 10, bob: 20, charlie: 15`). The `--alt` option overrides this entirely with custom text. The alt text is embedded automatically when using `-f markdown`, `-f html`, or `-f json` output formats, or can be printed on its own with `-f alt`.
+
+See the [alt text demo](https://github.com/simonw/chartroom/blob/main/demo/alt-text.md) for worked examples of every chart type and output format.
+
 ### Styling
 
 ```bash
