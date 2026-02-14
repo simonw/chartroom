@@ -5,7 +5,7 @@
 [![Tests](https://github.com/simonw/chartroom/actions/workflows/test.yml/badge.svg)](https://github.com/simonw/chartroom/actions/workflows/test.yml)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/simonw/chartroom/blob/master/LICENSE)
 
-CLI tool for creating charts from CSV, TSV, JSON, JSONL, or SQLite data using matplotlib.
+CLI tool for creating charts from CSV, TSV, JSON, JSONL, or SQLite data using [matplotlib](https://matplotlib.org/). Designed to work well with [Showboat](https://github.com/simonw/showboat).
 
 ## Installation
 
