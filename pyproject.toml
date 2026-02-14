@@ -1,0 +1,28 @@
+[project]
+name = "chartroom"
+version = "0.1"
+description = "CLI tool for creating charts"
+readme = "README.md"
+authors = [{name = "Simon Willison"}]
+license = "Apache-2.0"
+requires-python = ">=3.10"
+classifiers = []
+dependencies = [
+    "click"
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project.urls]
+Homepage = "https://github.com/simonw/chartroom"
+Changelog = "https://github.com/simonw/chartroom/releases"
+Issues = "https://github.com/simonw/chartroom/issues"
+CI = "https://github.com/simonw/chartroom/actions"
+
+[project.scripts]
+chartroom = "chartroom.cli:cli"
+
+[project.optional-dependencies]
+test = ["pytest"]
