@@ -113,7 +113,7 @@ def test_format_markdown_auto_alt_from_title():
         )
         assert result.exit_code == 0, result.output
         output = result.output.strip()
-        assert output.startswith("![Revenue Chart](")
+        assert output.startswith("![Revenue Chart. ")
 
 
 def test_format_markdown_alt_overrides_title():
@@ -395,7 +395,7 @@ def test_auto_alt_bar_with_title():
                 "Team Scores",
             ]
         )
-        assert alt == snapshot("Team Scores")
+        assert alt == snapshot('Team Scores. Bar chart of value by name — alice: 10, bob: 20, charlie: 15')
 
 
 def test_auto_alt_line_small():

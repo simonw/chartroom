@@ -24,10 +24,18 @@ def _fmt_num(val):
 
 
 def _generate_alt_text(chart_type, rows, x_col, y_cols, title=None):
-    """Generate descriptive alt text based on chart data."""
-    if title:
-        return title
+    """Generate descriptive alt text based on chart data.
 
+    If title is set, it is prepended: "Title. Generated description".
+    """
+    description = _describe_chart(chart_type, rows, x_col, y_cols)
+    if title:
+        return f"{title}. {description}"
+    return description
+
+
+def _describe_chart(chart_type, rows, x_col, y_cols):
+    """Build a data-driven description of the chart."""
     type_labels = {
         "bar": "Bar chart",
         "line": "Line chart",
@@ -255,8 +263,8 @@ _common_options = [
         help=(
             "Override the auto-generated alt text. "
             "Ignored when -f is path (the default). "
-            "When omitted, alt text is derived from --title if set, "
-            "otherwise generated from the chart type and data columns."
+            "When omitted, a description is generated from the chart type "
+            "and data. If --title is set it is prepended to the description."
         ),
     ),
 ]
