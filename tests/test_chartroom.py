@@ -37,6 +37,7 @@ def test_bar_help():
 
 # --- Bar chart ---
 
+
 def test_bar_csv_file():
     runner = CliRunner()
     with runner.isolated_filesystem():
@@ -53,8 +54,9 @@ def test_bar_csv_stdin():
     runner = CliRunner()
     with runner.isolated_filesystem():
         result = runner.invoke(
-            cli, ["bar", "--csv", "-o", "out.png"],
-            input="name,value\nalice,10\nbob,20\n"
+            cli,
+            ["bar", "--csv", "-o", "out.png"],
+            input="name,value\nalice,10\nbob,20\n",
         )
         assert result.exit_code == 0, result.output
         assert os.path.exists("out.png")
@@ -119,7 +121,9 @@ def test_bar_sql():
         conn.execute("INSERT INTO t VALUES ('bob', 20)")
         conn.commit()
         conn.close()
-        result = runner.invoke(cli, ["bar", "--sql", "test.db", "SELECT * FROM t", "-o", "out.png"])
+        result = runner.invoke(
+            cli, ["bar", "--sql", "test.db", "SELECT * FROM t", "-o", "out.png"]
+        )
         assert result.exit_code == 0, result.output
         assert os.path.exists("out.png")
 
@@ -129,7 +133,9 @@ def test_bar_explicit_columns():
     with runner.isolated_filesystem():
         with open("data.csv", "w") as f:
             f.write("a,b,c\nalice,10,99\nbob,20,88\n")
-        result = runner.invoke(cli, ["bar", "--csv", "-x", "a", "-y", "b", "data.csv", "-o", "out.png"])
+        result = runner.invoke(
+            cli, ["bar", "--csv", "-x", "a", "-y", "b", "data.csv", "-o", "out.png"]
+        )
         assert result.exit_code == 0, result.output
         assert os.path.exists("out.png")
 
@@ -139,7 +145,22 @@ def test_bar_multi_y():
     with runner.isolated_filesystem():
         with open("data.csv", "w") as f:
             f.write("name,q1,q2\nalice,10,15\nbob,20,25\n")
-        result = runner.invoke(cli, ["bar", "--csv", "-x", "name", "-y", "q1", "-y", "q2", "data.csv", "-o", "out.png"])
+        result = runner.invoke(
+            cli,
+            [
+                "bar",
+                "--csv",
+                "-x",
+                "name",
+                "-y",
+                "q1",
+                "-y",
+                "q2",
+                "data.csv",
+                "-o",
+                "out.png",
+            ],
+        )
         assert result.exit_code == 0, result.output
         assert os.path.exists("out.png")
 
@@ -149,16 +170,34 @@ def test_bar_styling():
     with runner.isolated_filesystem():
         with open("data.csv", "w") as f:
             f.write("name,value\nalice,10\nbob,20\n")
-        result = runner.invoke(cli, [
-            "bar", "--csv", "data.csv", "-o", "out.png",
-            "--title", "My Chart", "--xlabel", "Name", "--ylabel", "Value",
-            "--width", "12", "--height", "8", "--dpi", "150",
-        ])
+        result = runner.invoke(
+            cli,
+            [
+                "bar",
+                "--csv",
+                "data.csv",
+                "-o",
+                "out.png",
+                "--title",
+                "My Chart",
+                "--xlabel",
+                "Name",
+                "--ylabel",
+                "Value",
+                "--width",
+                "12",
+                "--height",
+                "8",
+                "--dpi",
+                "150",
+            ],
+        )
         assert result.exit_code == 0, result.output
         assert os.path.exists("out.png")
 
 
 # --- Output path handling ---
+
 
 def test_auto_output_filename():
     runner = CliRunner()
@@ -197,6 +236,7 @@ def test_output_is_absolute_path():
 
 # --- Error handling ---
 
+
 def test_no_input():
     runner = CliRunner()
     with runner.isolated_filesystem():
@@ -212,7 +252,9 @@ def test_sql_with_csv_flag():
         conn.execute("CREATE TABLE t (name TEXT)")
         conn.commit()
         conn.close()
-        result = runner.invoke(cli, ["bar", "--sql", "test.db", "SELECT * FROM t", "--csv"])
+        result = runner.invoke(
+            cli, ["bar", "--sql", "test.db", "SELECT * FROM t", "--csv"]
+        )
         assert result.exit_code != 0
 
 
@@ -221,11 +263,14 @@ def test_missing_column():
     with runner.isolated_filesystem():
         with open("data.csv", "w") as f:
             f.write("name,value\nalice,10\n")
-        result = runner.invoke(cli, ["bar", "--csv", "-x", "missing", "data.csv", "-o", "out.png"])
+        result = runner.invoke(
+            cli, ["bar", "--csv", "-x", "missing", "data.csv", "-o", "out.png"]
+        )
         assert result.exit_code != 0
 
 
 # --- Line chart ---
+
 
 def test_line_csv():
     runner = CliRunner()
@@ -243,10 +288,24 @@ def test_line_multi_series():
     with runner.isolated_filesystem():
         with open("data.csv", "w") as f:
             f.write("month,revenue,costs\nJan,100,80\nFeb,120,90\nMar,115,85\n")
-        result = runner.invoke(cli, [
-            "line", "--csv", "-x", "month", "-y", "revenue", "-y", "costs",
-            "data.csv", "-o", "out.png", "--title", "Revenue vs Costs"
-        ])
+        result = runner.invoke(
+            cli,
+            [
+                "line",
+                "--csv",
+                "-x",
+                "month",
+                "-y",
+                "revenue",
+                "-y",
+                "costs",
+                "data.csv",
+                "-o",
+                "out.png",
+                "--title",
+                "Revenue vs Costs",
+            ],
+        )
         assert result.exit_code == 0, result.output
         assert os.path.exists("out.png")
 
@@ -270,7 +329,9 @@ def test_line_sql():
         conn.execute("INSERT INTO t VALUES ('Feb', 120)")
         conn.commit()
         conn.close()
-        result = runner.invoke(cli, ["line", "--sql", "test.db", "SELECT * FROM t", "-o", "out.png"])
+        result = runner.invoke(
+            cli, ["line", "--sql", "test.db", "SELECT * FROM t", "-o", "out.png"]
+        )
         assert result.exit_code == 0, result.output
         assert os.path.exists("out.png")
 
@@ -279,14 +340,14 @@ def test_line_stdin():
     runner = CliRunner()
     with runner.isolated_filesystem():
         result = runner.invoke(
-            cli, ["line", "--csv", "-o", "out.png"],
-            input="x,y\n1,10\n2,20\n3,15\n"
+            cli, ["line", "--csv", "-o", "out.png"], input="x,y\n1,10\n2,20\n3,15\n"
         )
         assert result.exit_code == 0, result.output
         assert os.path.exists("out.png")
 
 
 # --- Scatter chart ---
+
 
 def test_scatter_csv():
     runner = CliRunner()
@@ -304,10 +365,20 @@ def test_scatter_explicit_columns():
     with runner.isolated_filesystem():
         with open("data.csv", "w") as f:
             f.write("height,weight,age\n170,65,30\n180,80,25\n165,55,35\n")
-        result = runner.invoke(cli, [
-            "scatter", "--csv", "-x", "height", "-y", "weight",
-            "data.csv", "-o", "out.png"
-        ])
+        result = runner.invoke(
+            cli,
+            [
+                "scatter",
+                "--csv",
+                "-x",
+                "height",
+                "-y",
+                "weight",
+                "data.csv",
+                "-o",
+                "out.png",
+            ],
+        )
         assert result.exit_code == 0, result.output
         assert os.path.exists("out.png")
 
@@ -317,10 +388,22 @@ def test_scatter_multi_y():
     with runner.isolated_filesystem():
         with open("data.csv", "w") as f:
             f.write("x,y1,y2\n1,2,3\n3,4,1\n5,3,5\n")
-        result = runner.invoke(cli, [
-            "scatter", "--csv", "-x", "x", "-y", "y1", "-y", "y2",
-            "data.csv", "-o", "out.png"
-        ])
+        result = runner.invoke(
+            cli,
+            [
+                "scatter",
+                "--csv",
+                "-x",
+                "x",
+                "-y",
+                "y1",
+                "-y",
+                "y2",
+                "data.csv",
+                "-o",
+                "out.png",
+            ],
+        )
         assert result.exit_code == 0, result.output
         assert os.path.exists("out.png")
 
@@ -344,12 +427,15 @@ def test_scatter_sql():
         conn.execute("INSERT INTO t VALUES (3.0, 4.0)")
         conn.commit()
         conn.close()
-        result = runner.invoke(cli, ["scatter", "--sql", "test.db", "SELECT * FROM t", "-o", "out.png"])
+        result = runner.invoke(
+            cli, ["scatter", "--sql", "test.db", "SELECT * FROM t", "-o", "out.png"]
+        )
         assert result.exit_code == 0, result.output
         assert os.path.exists("out.png")
 
 
 # --- Pie chart ---
+
 
 def test_pie_csv():
     runner = CliRunner()
@@ -367,10 +453,10 @@ def test_pie_with_title():
     with runner.isolated_filesystem():
         with open("data.csv", "w") as f:
             f.write("label,count\nA,10\nB,20\nC,30\n")
-        result = runner.invoke(cli, [
-            "pie", "--csv", "data.csv", "-o", "out.png",
-            "--title", "Distribution"
-        ])
+        result = runner.invoke(
+            cli,
+            ["pie", "--csv", "data.csv", "-o", "out.png", "--title", "Distribution"],
+        )
         assert result.exit_code == 0, result.output
         assert os.path.exists("out.png")
 
@@ -394,19 +480,24 @@ def test_pie_sql():
         conn.execute("INSERT INTO t VALUES ('B', 20)")
         conn.commit()
         conn.close()
-        result = runner.invoke(cli, ["pie", "--sql", "test.db", "SELECT * FROM t", "-o", "out.png"])
+        result = runner.invoke(
+            cli, ["pie", "--sql", "test.db", "SELECT * FROM t", "-o", "out.png"]
+        )
         assert result.exit_code == 0, result.output
         assert os.path.exists("out.png")
 
 
 # --- Histogram ---
 
+
 def test_histogram_csv():
     runner = CliRunner()
     with runner.isolated_filesystem():
         with open("data.csv", "w") as f:
             f.write("score\n85\n90\n78\n92\n88\n76\n95\n82\n89\n91\n")
-        result = runner.invoke(cli, ["histogram", "--csv", "-y", "score", "data.csv", "-o", "out.png"])
+        result = runner.invoke(
+            cli, ["histogram", "--csv", "-y", "score", "data.csv", "-o", "out.png"]
+        )
         assert result.exit_code == 0, result.output
         assert os.path.exists("out.png")
         assert os.path.getsize("out.png") > 0
@@ -417,10 +508,20 @@ def test_histogram_bins():
     with runner.isolated_filesystem():
         with open("data.csv", "w") as f:
             f.write("value\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n")
-        result = runner.invoke(cli, [
-            "histogram", "--csv", "-y", "value", "data.csv",
-            "-o", "out.png", "--bins", "5"
-        ])
+        result = runner.invoke(
+            cli,
+            [
+                "histogram",
+                "--csv",
+                "-y",
+                "value",
+                "data.csv",
+                "-o",
+                "out.png",
+                "--bins",
+                "5",
+            ],
+        )
         assert result.exit_code == 0, result.output
         assert os.path.exists("out.png")
 
@@ -440,7 +541,9 @@ def test_histogram_json():
     with runner.isolated_filesystem():
         with open("data.json", "w") as f:
             f.write('[{"value": 10}, {"value": 20}, {"value": 15}, {"value": 25}]')
-        result = runner.invoke(cli, ["histogram", "--json", "data.json", "-o", "out.png"])
+        result = runner.invoke(
+            cli, ["histogram", "--json", "data.json", "-o", "out.png"]
+        )
         assert result.exit_code == 0, result.output
         assert os.path.exists("out.png")
 
@@ -454,7 +557,9 @@ def test_histogram_sql():
             conn.execute("INSERT INTO t VALUES (?)", (v,))
         conn.commit()
         conn.close()
-        result = runner.invoke(cli, ["histogram", "--sql", "test.db", "SELECT * FROM t", "-o", "out.png"])
+        result = runner.invoke(
+            cli, ["histogram", "--sql", "test.db", "SELECT * FROM t", "-o", "out.png"]
+        )
         assert result.exit_code == 0, result.output
         assert os.path.exists("out.png")
 
@@ -464,9 +569,23 @@ def test_histogram_with_title():
     with runner.isolated_filesystem():
         with open("data.csv", "w") as f:
             f.write("score\n85\n90\n78\n92\n88\n")
-        result = runner.invoke(cli, [
-            "histogram", "--csv", "-y", "score", "data.csv", "-o", "out.png",
-            "--title", "Score Distribution", "--xlabel", "Score", "--ylabel", "Frequency"
-        ])
+        result = runner.invoke(
+            cli,
+            [
+                "histogram",
+                "--csv",
+                "-y",
+                "score",
+                "data.csv",
+                "-o",
+                "out.png",
+                "--title",
+                "Score Distribution",
+                "--xlabel",
+                "Score",
+                "--ylabel",
+                "Frequency",
+            ],
+        )
         assert result.exit_code == 0, result.output
         assert os.path.exists("out.png")

@@ -1,4 +1,5 @@
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from typing import List, Dict, Any, Optional
@@ -90,7 +91,9 @@ def render_bar(
         ax.set_xticks(x_pos)
         ax.set_xticklabels(x_labels)
 
-    _finalize(fig, ax, output_path, title, xlabel, ylabel, dpi, show_legend=len(y_cols) > 1)
+    _finalize(
+        fig, ax, output_path, title, xlabel, ylabel, dpi, show_legend=len(y_cols) > 1
+    )
 
 
 def render_line(
@@ -119,7 +122,9 @@ def render_line(
     ax.set_xticks(list(x_pos))
     ax.set_xticklabels(x_labels)
 
-    _finalize(fig, ax, output_path, title, xlabel, ylabel, dpi, show_legend=len(y_cols) > 1)
+    _finalize(
+        fig, ax, output_path, title, xlabel, ylabel, dpi, show_legend=len(y_cols) > 1
+    )
 
 
 def render_scatter(
@@ -144,7 +149,9 @@ def render_scatter(
         y_values = _to_float([row[yc] for row in rows], yc)
         ax.scatter(x_values, y_values, label=yc)
 
-    _finalize(fig, ax, output_path, title, xlabel, ylabel, dpi, show_legend=len(y_cols) > 1)
+    _finalize(
+        fig, ax, output_path, title, xlabel, ylabel, dpi, show_legend=len(y_cols) > 1
+    )
 
 
 def render_pie(

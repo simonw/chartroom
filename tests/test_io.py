@@ -17,8 +17,8 @@ from chartroom.io import (
     resolve_columns,
 )
 
-
 # --- CSV ---
+
 
 def test_load_csv():
     data = b"name,value\nalice,10\nbob,20\n"
@@ -34,6 +34,7 @@ def test_load_csv_utf8_bom():
 
 # --- TSV ---
 
+
 def test_load_tsv():
     data = b"name\tvalue\nalice\t10\nbob\t20\n"
     rows = load_rows_from_tsv(io.BytesIO(data))
@@ -41,6 +42,7 @@ def test_load_tsv():
 
 
 # --- JSON ---
+
 
 def test_load_json_array():
     data = json.dumps([{"name": "alice", "value": 10}]).encode()
@@ -62,6 +64,7 @@ def test_load_json_bad_format():
 
 # --- JSONL ---
 
+
 def test_load_jsonl():
     data = b'{"name": "alice", "value": 10}\n{"name": "bob", "value": 20}\n'
     rows = load_rows_from_jsonl(io.BytesIO(data))
@@ -78,6 +81,7 @@ def test_load_jsonl_blank_lines():
 
 
 # --- SQL ---
+
 
 def test_load_sql():
     with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
@@ -112,6 +116,7 @@ def test_load_sql_read_only():
 
 
 # --- Auto-detection ---
+
 
 def test_detect_csv():
     data = b"name,value\nalice,10\nbob,20\n"
@@ -172,6 +177,7 @@ def test_load_rows_sql_mode():
 
 
 # --- Column resolution ---
+
 
 def test_resolve_columns_explicit():
     rows = [{"a": 1, "b": 2, "c": 3}]

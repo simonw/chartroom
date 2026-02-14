@@ -17,14 +17,18 @@ def load_rows_from_sql(db_path: str, query: str) -> List[Dict[str, Any]]:
         conn.close()
 
 
-def load_rows_from_csv(fp: BinaryIO, encoding: str = "utf-8-sig") -> List[Dict[str, Any]]:
+def load_rows_from_csv(
+    fp: BinaryIO, encoding: str = "utf-8-sig"
+) -> List[Dict[str, Any]]:
     """Parse CSV from a binary file-like object."""
     text = io.TextIOWrapper(fp, encoding=encoding)
     reader = csv.DictReader(text)
     return [dict(row) for row in reader]
 
 
-def load_rows_from_tsv(fp: BinaryIO, encoding: str = "utf-8-sig") -> List[Dict[str, Any]]:
+def load_rows_from_tsv(
+    fp: BinaryIO, encoding: str = "utf-8-sig"
+) -> List[Dict[str, Any]]:
     """Parse TSV from a binary file-like object."""
     text = io.TextIOWrapper(fp, encoding=encoding)
     reader = csv.DictReader(text, dialect=csv.excel_tab)
@@ -54,7 +58,11 @@ def detect_format(fp: BinaryIO) -> Tuple[str, BinaryIO]:
         # Could be JSON or JSONL - check if first line is a complete object
         # followed by more lines
         lines = first_bytes.split(b"\n", 2)
-        if len(lines) >= 2 and lines[0].strip().startswith(b"{") and not first_bytes.startswith(b"["):
+        if (
+            len(lines) >= 2
+            and lines[0].strip().startswith(b"{")
+            and not first_bytes.startswith(b"[")
+        ):
             return "jsonl", buffered
         return "json", buffered
     else:
@@ -179,9 +187,13 @@ def resolve_columns(
 
     # Validate columns exist
     if x_col is not None and x_col not in columns:
-        raise ValueError(f"Column '{x_col}' not found. Available columns: {', '.join(columns)}")
+        raise ValueError(
+            f"Column '{x_col}' not found. Available columns: {', '.join(columns)}"
+        )
     for yc in y_cols:
         if yc not in columns:
-            raise ValueError(f"Column '{yc}' not found. Available columns: {', '.join(columns)}")
+            raise ValueError(
+                f"Column '{yc}' not found. Available columns: {', '.join(columns)}"
+            )
 
     return x_col, y_cols
