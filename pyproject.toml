@@ -8,7 +8,8 @@ license = "Apache-2.0"
 requires-python = ">=3.10"
 classifiers = []
 dependencies = [
-    "click"
+    "click",
+    "matplotlib"
 ]
 
 [build-system]
@@ -24,5 +25,5 @@ CI = "https://github.com/simonw/chartroom/actions"
 [project.scripts]
 chartroom = "chartroom.cli:cli"
 
-[project.optional-dependencies]
-test = ["pytest"]
+[dependency-groups]
+dev = ["pytest"]
