@@ -133,6 +133,340 @@ chartroom bar --csv data.csv --title "Sales" --xlabel "Region" --ylabel "Revenue
   --width 12 --height 8 --dpi 150 --style ggplot
 ```
 
+Available styles:
+
+<!-- [[[cog
+from click.testing import CliRunner
+from chartroom.cli import cli
+result = CliRunner().invoke(cli, ["styles"])
+lines = [l for l in result.output.strip().split("\n") if l.strip()]
+cog.out("\n".join(f"- `{l.strip()}`" for l in lines) + "\n")
+]]] -->
+- `Solarize_Light2`
+- `bmh`
+- `classic`
+- `dark_background`
+- `fast`
+- `fivethirtyeight`
+- `ggplot`
+- `grayscale`
+- `petroff10`
+- `seaborn-v0_8`
+- `seaborn-v0_8-bright`
+- `seaborn-v0_8-colorblind`
+- `seaborn-v0_8-dark`
+- `seaborn-v0_8-dark-palette`
+- `seaborn-v0_8-darkgrid`
+- `seaborn-v0_8-deep`
+- `seaborn-v0_8-muted`
+- `seaborn-v0_8-notebook`
+- `seaborn-v0_8-paper`
+- `seaborn-v0_8-pastel`
+- `seaborn-v0_8-poster`
+- `seaborn-v0_8-talk`
+- `seaborn-v0_8-ticks`
+- `seaborn-v0_8-white`
+- `seaborn-v0_8-whitegrid`
+- `tableau-colorblind10`
+<!-- [[[end]]] -->
+
+## CLI reference
+
+<!-- [[[cog
+from click.testing import CliRunner
+from chartroom.cli import cli
+def all_help(cli):
+    commands = []
+    def find_commands(command, path=None):
+        path = path or []
+        commands.append(path + [command.name])
+        if hasattr(command, 'commands'):
+            for subcommand in command.commands.values():
+                find_commands(subcommand, path + [command.name])
+    find_commands(cli)
+    commands = [command[1:] for command in commands]
+    output = []
+    for command in commands:
+        heading_level = len(command) + 2
+        result = CliRunner().invoke(cli, command + ["--help"])
+        cmd_str = " ".join(["chartroom"] + command)
+        output.append("#" * heading_level + " " + cmd_str + "\n")
+        output.append("```")
+        output.append(result.output.replace("Usage: cli", "Usage: chartroom").strip())
+        output.append("```\n")
+    return "\n".join(output)
+cog.out(all_help(cli))
+]]] -->
+## chartroom
+
+```
+Usage: chartroom [OPTIONS] COMMAND [ARGS]...
+
+  CLI tool for creating charts
+
+Options:
+  --version  Show the version and exit.
+  --help     Show this message and exit.
+
+Commands:
+  bar        Create a bar chart from columnar data.
+  histogram  Create a histogram showing the distribution of a numeric column.
+  line       Create a line chart from columnar data.
+  pie        Create a pie chart from columnar data.
+  scatter    Create a scatter plot from columnar data.
+  styles     List available matplotlib styles.
+```
+
+### chartroom bar
+
+```
+Usage: chartroom bar [OPTIONS] [FILE]
+
+  Create a bar chart from columnar data.
+
+  Examples:
+    chartroom bar --csv data.csv
+    chartroom bar --csv data.csv -x region -y revenue -o sales.png
+    chartroom bar --csv -x name -y q1 -y q2 data.csv
+    cat data.csv | chartroom bar --csv -f markdown
+    chartroom bar --sql mydb.sqlite "SELECT name, count FROM items"
+
+Options:
+  -o, --output TEXT               Output file path (default: chart.png)
+  -x TEXT                         Column for x-axis / categories
+  -y TEXT                         Column(s) for y-axis / values (repeatable)
+  --csv                           Parse input as CSV
+  --tsv                           Parse input as TSV
+  --json                          Parse input as JSON
+  --jsonl                         Parse input as newline-delimited JSON
+  --sql TEXT...                   Query a SQLite database. Takes two arguments:
+                                  DATABASE QUERY. Example: --sql mydb.sqlite
+                                  'SELECT name, count FROM items'
+  --title TEXT                    Chart title, also prepended to generated alt
+                                  text
+  --xlabel TEXT                   X-axis label
+  --ylabel TEXT                   Y-axis label
+  --width FLOAT                   Figure width in inches
+  --height FLOAT                  Figure height in inches
+  --style TEXT                    Matplotlib style (e.g. ggplot,
+                                  dark_background)
+  --dpi INTEGER                   Output DPI
+  -f, --output-format [path|markdown|html|json|alt]
+                                  How to format stdout. path (default): absolute
+                                  file path. markdown: ![alt](path). html: <img
+                                  src=path alt=...>. json: {"path": ..., "alt":
+                                  ...}. alt: just the alt text, no path. Alt
+                                  text is auto-generated from chart type and
+                                  data unless --alt is given.
+  --alt TEXT                      Override the auto-generated alt text. Ignored
+                                  when -f is path (the default). When omitted, a
+                                  description is generated from the chart type
+                                  and data.
+  --help                          Show this message and exit.
+```
+
+### chartroom line
+
+```
+Usage: chartroom line [OPTIONS] [FILE]
+
+  Create a line chart from columnar data.
+
+  Examples:
+    chartroom line --csv data.csv
+    chartroom line --csv data.csv -x month -y revenue
+    chartroom line --csv -x date -y temp -y humidity data.csv
+    chartroom line --csv data.csv -f json
+
+Options:
+  -o, --output TEXT               Output file path (default: chart.png)
+  -x TEXT                         Column for x-axis / categories
+  -y TEXT                         Column(s) for y-axis / values (repeatable)
+  --csv                           Parse input as CSV
+  --tsv                           Parse input as TSV
+  --json                          Parse input as JSON
+  --jsonl                         Parse input as newline-delimited JSON
+  --sql TEXT...                   Query a SQLite database. Takes two arguments:
+                                  DATABASE QUERY. Example: --sql mydb.sqlite
+                                  'SELECT name, count FROM items'
+  --title TEXT                    Chart title, also prepended to generated alt
+                                  text
+  --xlabel TEXT                   X-axis label
+  --ylabel TEXT                   Y-axis label
+  --width FLOAT                   Figure width in inches
+  --height FLOAT                  Figure height in inches
+  --style TEXT                    Matplotlib style (e.g. ggplot,
+                                  dark_background)
+  --dpi INTEGER                   Output DPI
+  -f, --output-format [path|markdown|html|json|alt]
+                                  How to format stdout. path (default): absolute
+                                  file path. markdown: ![alt](path). html: <img
+                                  src=path alt=...>. json: {"path": ..., "alt":
+                                  ...}. alt: just the alt text, no path. Alt
+                                  text is auto-generated from chart type and
+                                  data unless --alt is given.
+  --alt TEXT                      Override the auto-generated alt text. Ignored
+                                  when -f is path (the default). When omitted, a
+                                  description is generated from the chart type
+                                  and data.
+  --help                          Show this message and exit.
+```
+
+### chartroom scatter
+
+```
+Usage: chartroom scatter [OPTIONS] [FILE]
+
+  Create a scatter plot from columnar data.
+
+  Examples:
+    chartroom scatter --csv data.csv
+    chartroom scatter --csv data.csv -x height -y weight
+    chartroom scatter --csv data.csv -f html --alt "Height vs Weight"
+
+Options:
+  -o, --output TEXT               Output file path (default: chart.png)
+  -x TEXT                         Column for x-axis / categories
+  -y TEXT                         Column(s) for y-axis / values (repeatable)
+  --csv                           Parse input as CSV
+  --tsv                           Parse input as TSV
+  --json                          Parse input as JSON
+  --jsonl                         Parse input as newline-delimited JSON
+  --sql TEXT...                   Query a SQLite database. Takes two arguments:
+                                  DATABASE QUERY. Example: --sql mydb.sqlite
+                                  'SELECT name, count FROM items'
+  --title TEXT                    Chart title, also prepended to generated alt
+                                  text
+  --xlabel TEXT                   X-axis label
+  --ylabel TEXT                   Y-axis label
+  --width FLOAT                   Figure width in inches
+  --height FLOAT                  Figure height in inches
+  --style TEXT                    Matplotlib style (e.g. ggplot,
+                                  dark_background)
+  --dpi INTEGER                   Output DPI
+  -f, --output-format [path|markdown|html|json|alt]
+                                  How to format stdout. path (default): absolute
+                                  file path. markdown: ![alt](path). html: <img
+                                  src=path alt=...>. json: {"path": ..., "alt":
+                                  ...}. alt: just the alt text, no path. Alt
+                                  text is auto-generated from chart type and
+                                  data unless --alt is given.
+  --alt TEXT                      Override the auto-generated alt text. Ignored
+                                  when -f is path (the default). When omitted, a
+                                  description is generated from the chart type
+                                  and data.
+  --help                          Show this message and exit.
+```
+
+### chartroom pie
+
+```
+Usage: chartroom pie [OPTIONS] [FILE]
+
+  Create a pie chart from columnar data.
+
+  Uses the first -y column for slice sizes. Labels come from the -x column.
+
+  Examples:
+    chartroom pie --csv data.csv
+    chartroom pie --csv data.csv -x category -y amount
+    chartroom pie --csv data.csv -f markdown
+
+Options:
+  -o, --output TEXT               Output file path (default: chart.png)
+  -x TEXT                         Column for x-axis / categories
+  -y TEXT                         Column(s) for y-axis / values (repeatable)
+  --csv                           Parse input as CSV
+  --tsv                           Parse input as TSV
+  --json                          Parse input as JSON
+  --jsonl                         Parse input as newline-delimited JSON
+  --sql TEXT...                   Query a SQLite database. Takes two arguments:
+                                  DATABASE QUERY. Example: --sql mydb.sqlite
+                                  'SELECT name, count FROM items'
+  --title TEXT                    Chart title, also prepended to generated alt
+                                  text
+  --xlabel TEXT                   X-axis label
+  --ylabel TEXT                   Y-axis label
+  --width FLOAT                   Figure width in inches
+  --height FLOAT                  Figure height in inches
+  --style TEXT                    Matplotlib style (e.g. ggplot,
+                                  dark_background)
+  --dpi INTEGER                   Output DPI
+  -f, --output-format [path|markdown|html|json|alt]
+                                  How to format stdout. path (default): absolute
+                                  file path. markdown: ![alt](path). html: <img
+                                  src=path alt=...>. json: {"path": ..., "alt":
+                                  ...}. alt: just the alt text, no path. Alt
+                                  text is auto-generated from chart type and
+                                  data unless --alt is given.
+  --alt TEXT                      Override the auto-generated alt text. Ignored
+                                  when -f is path (the default). When omitted, a
+                                  description is generated from the chart type
+                                  and data.
+  --help                          Show this message and exit.
+```
+
+### chartroom histogram
+
+```
+Usage: chartroom histogram [OPTIONS] [FILE]
+
+  Create a histogram showing the distribution of a numeric column.
+
+  Requires -y to specify the column. Use --bins to control bucket count.
+
+  Examples:
+    chartroom histogram --csv -y score data.csv
+    chartroom histogram --csv -y score data.csv --bins 20
+    chartroom histogram --csv -y score data.csv -f alt
+
+Options:
+  -o, --output TEXT               Output file path (default: chart.png)
+  -x TEXT                         Column for x-axis / categories
+  -y TEXT                         Column(s) for y-axis / values (repeatable)
+  --csv                           Parse input as CSV
+  --tsv                           Parse input as TSV
+  --json                          Parse input as JSON
+  --jsonl                         Parse input as newline-delimited JSON
+  --sql TEXT...                   Query a SQLite database. Takes two arguments:
+                                  DATABASE QUERY. Example: --sql mydb.sqlite
+                                  'SELECT name, count FROM items'
+  --title TEXT                    Chart title, also prepended to generated alt
+                                  text
+  --xlabel TEXT                   X-axis label
+  --ylabel TEXT                   Y-axis label
+  --width FLOAT                   Figure width in inches
+  --height FLOAT                  Figure height in inches
+  --style TEXT                    Matplotlib style (e.g. ggplot,
+                                  dark_background)
+  --dpi INTEGER                   Output DPI
+  -f, --output-format [path|markdown|html|json|alt]
+                                  How to format stdout. path (default): absolute
+                                  file path. markdown: ![alt](path). html: <img
+                                  src=path alt=...>. json: {"path": ..., "alt":
+                                  ...}. alt: just the alt text, no path. Alt
+                                  text is auto-generated from chart type and
+                                  data unless --alt is given.
+  --alt TEXT                      Override the auto-generated alt text. Ignored
+                                  when -f is path (the default). When omitted, a
+                                  description is generated from the chart type
+                                  and data.
+  --bins INTEGER                  Number of histogram bins
+  --help                          Show this message and exit.
+```
+
+### chartroom styles
+
+```
+Usage: chartroom styles [OPTIONS]
+
+  List available matplotlib styles.
+
+Options:
+  --help  Show this message and exit.
+```
+<!-- [[[end]]] -->
+
 ## Development
 
 ```bash

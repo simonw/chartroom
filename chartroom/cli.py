@@ -640,3 +640,13 @@ def histogram(
         output_format=output_format,
         alt=alt,
     )
+
+
+@cli.command()
+def styles():
+    """List available matplotlib styles."""
+    import matplotlib.pyplot as plt
+
+    for style in sorted(plt.style.available):
+        if not style.startswith("_"):
+            click.echo(style)
