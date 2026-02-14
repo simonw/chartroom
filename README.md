@@ -79,6 +79,10 @@ chartroom bar --csv data.csv --title "Sales" --xlabel "Region" --ylabel "Revenue
   --width 12 --height 8 --dpi 150 --style ggplot
 ```
 
+## Demo
+
+See the [live demo document](https://github.com/simonw/chartroom/blob/main/demo/README.md) for examples of every chart type, input format, and style option with inline images. The demo was built using [Showboat](https://github.com/simonw/showboat).
+
 ## Development
 
 ```bash
