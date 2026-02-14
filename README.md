@@ -170,6 +170,8 @@ cog.out("\n".join(f"- `{l.strip()}`" for l in lines) + "\n")
 - `tableau-colorblind10`
 <!-- [[[end]]] -->
 
+See the [style gallery](https://github.com/simonw/chartroom/blob/main/demo/styles.md) for visual examples of every style.
+
 ## CLI reference
 
 <!-- [[[cog
