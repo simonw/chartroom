@@ -64,11 +64,11 @@ Other,300" > /tmp/budget.csv && uv run chartroom pie --csv /tmp/budget.csv -o de
 ![5e7a9cce-2026-02-14](5e7a9cce-2026-02-14.png)
 
 ```bash
-uv run chartroom pie --csv /tmp/budget.csv -o /tmp/x.png -f alt
+uv run chartroom pie --csv /tmp/budget.csv -o /tmp/x.png -f alt --title "Monthly Budget"
 ```
 
 ```output
-Pie chart showing Rent (57%), Food (19%), Transport (10%), Other (14%)
+Monthly Budget. Pie chart showing Rent (57%), Food (19%), Transport (10%), Other (14%)
 ```
 
 ## Line Chart
@@ -114,11 +114,11 @@ echo "score
 ![d6490b71-2026-02-14](d6490b71-2026-02-14.png)
 
 ```bash
-uv run chartroom histogram --csv -y score /tmp/scores.csv -o /tmp/x.png -f alt
+uv run chartroom histogram --csv -y score /tmp/scores.csv -o /tmp/x.png -f alt --title "Score Distribution"
 ```
 
 ```output
-Histogram of 10 score values ranging from 76 to 95
+Score Distribution. Histogram of 10 score values ranging from 76 to 95
 ```
 
 ## Markdown Output Format
@@ -131,6 +131,28 @@ uv run chartroom bar --csv /tmp/small.csv -o /tmp/x.png -f markdown
 
 ```output
 ![Bar chart of value by name — alice: 10, bob: 20, charlie: 15](/tmp/x.png)
+```
+
+## Title + Alt Text
+
+When `--title` is set, it is prepended to the generated description so screen readers get both the human label and the data summary:
+
+```bash
+uv run chartroom bar --csv /tmp/small.csv -o /tmp/x.png -f alt --title "Team Scores"
+```
+
+```output
+Team Scores. Bar chart of value by name — alice: 10, bob: 20, charlie: 15
+```
+
+Without `--title`, the description stands alone:
+
+```bash
+uv run chartroom bar --csv /tmp/small.csv -o /tmp/x.png -f alt
+```
+
+```output
+Bar chart of value by name — alice: 10, bob: 20, charlie: 15
 ```
 
 ## Custom Alt Text
