@@ -132,7 +132,8 @@ def _render_scatter_wrapper(rows, x_col, y_cols, output_path, **kwargs):
     render_scatter(rows, x_col, y_cols, output_path, **kwargs)
 
 
-def _render_pie_wrapper(rows, x_col, y_cols, output_path, **kwargs):
+def _render_pie_wrapper(rows, x_col, y_cols, output_path, xlabel=None, ylabel=None, **kwargs):
+    # Pie charts ignore xlabel/ylabel
     render_pie(rows, x_col, y_cols[0], output_path, **kwargs)
 
 

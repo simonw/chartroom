@@ -223,3 +223,250 @@ def test_missing_column():
             f.write("name,value\nalice,10\n")
         result = runner.invoke(cli, ["bar", "--csv", "-x", "missing", "data.csv", "-o", "out.png"])
         assert result.exit_code != 0
+
+
+# --- Line chart ---
+
+def test_line_csv():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("data.csv", "w") as f:
+            f.write("month,revenue\nJan,100\nFeb,120\nMar,115\nApr,140\n")
+        result = runner.invoke(cli, ["line", "--csv", "data.csv", "-o", "out.png"])
+        assert result.exit_code == 0, result.output
+        assert os.path.exists("out.png")
+        assert os.path.getsize("out.png") > 0
+
+
+def test_line_multi_series():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("data.csv", "w") as f:
+            f.write("month,revenue,costs\nJan,100,80\nFeb,120,90\nMar,115,85\n")
+        result = runner.invoke(cli, [
+            "line", "--csv", "-x", "month", "-y", "revenue", "-y", "costs",
+            "data.csv", "-o", "out.png", "--title", "Revenue vs Costs"
+        ])
+        assert result.exit_code == 0, result.output
+        assert os.path.exists("out.png")
+
+
+def test_line_json():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("data.json", "w") as f:
+            f.write('[{"month": "Jan", "value": 100}, {"month": "Feb", "value": 120}]')
+        result = runner.invoke(cli, ["line", "--json", "data.json", "-o", "out.png"])
+        assert result.exit_code == 0, result.output
+        assert os.path.exists("out.png")
+
+
+def test_line_sql():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        conn = sqlite3.connect("test.db")
+        conn.execute("CREATE TABLE t (month TEXT, value INTEGER)")
+        conn.execute("INSERT INTO t VALUES ('Jan', 100)")
+        conn.execute("INSERT INTO t VALUES ('Feb', 120)")
+        conn.commit()
+        conn.close()
+        result = runner.invoke(cli, ["line", "--sql", "test.db", "SELECT * FROM t", "-o", "out.png"])
+        assert result.exit_code == 0, result.output
+        assert os.path.exists("out.png")
+
+
+def test_line_stdin():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli, ["line", "--csv", "-o", "out.png"],
+            input="x,y\n1,10\n2,20\n3,15\n"
+        )
+        assert result.exit_code == 0, result.output
+        assert os.path.exists("out.png")
+
+
+# --- Scatter chart ---
+
+def test_scatter_csv():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("data.csv", "w") as f:
+            f.write("x,y\n1,2\n3,4\n5,3\n7,8\n")
+        result = runner.invoke(cli, ["scatter", "--csv", "data.csv", "-o", "out.png"])
+        assert result.exit_code == 0, result.output
+        assert os.path.exists("out.png")
+        assert os.path.getsize("out.png") > 0
+
+
+def test_scatter_explicit_columns():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("data.csv", "w") as f:
+            f.write("height,weight,age\n170,65,30\n180,80,25\n165,55,35\n")
+        result = runner.invoke(cli, [
+            "scatter", "--csv", "-x", "height", "-y", "weight",
+            "data.csv", "-o", "out.png"
+        ])
+        assert result.exit_code == 0, result.output
+        assert os.path.exists("out.png")
+
+
+def test_scatter_multi_y():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("data.csv", "w") as f:
+            f.write("x,y1,y2\n1,2,3\n3,4,1\n5,3,5\n")
+        result = runner.invoke(cli, [
+            "scatter", "--csv", "-x", "x", "-y", "y1", "-y", "y2",
+            "data.csv", "-o", "out.png"
+        ])
+        assert result.exit_code == 0, result.output
+        assert os.path.exists("out.png")
+
+
+def test_scatter_json():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("data.json", "w") as f:
+            f.write('[{"x": 1, "y": 2}, {"x": 3, "y": 4}, {"x": 5, "y": 3}]')
+        result = runner.invoke(cli, ["scatter", "--json", "data.json", "-o", "out.png"])
+        assert result.exit_code == 0, result.output
+        assert os.path.exists("out.png")
+
+
+def test_scatter_sql():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        conn = sqlite3.connect("test.db")
+        conn.execute("CREATE TABLE t (x REAL, y REAL)")
+        conn.execute("INSERT INTO t VALUES (1.0, 2.0)")
+        conn.execute("INSERT INTO t VALUES (3.0, 4.0)")
+        conn.commit()
+        conn.close()
+        result = runner.invoke(cli, ["scatter", "--sql", "test.db", "SELECT * FROM t", "-o", "out.png"])
+        assert result.exit_code == 0, result.output
+        assert os.path.exists("out.png")
+
+
+# --- Pie chart ---
+
+def test_pie_csv():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("data.csv", "w") as f:
+            f.write("name,value\nRent,1200\nFood,400\nTransport,200\nOther,300\n")
+        result = runner.invoke(cli, ["pie", "--csv", "data.csv", "-o", "out.png"])
+        assert result.exit_code == 0, result.output
+        assert os.path.exists("out.png")
+        assert os.path.getsize("out.png") > 0
+
+
+def test_pie_with_title():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("data.csv", "w") as f:
+            f.write("label,count\nA,10\nB,20\nC,30\n")
+        result = runner.invoke(cli, [
+            "pie", "--csv", "data.csv", "-o", "out.png",
+            "--title", "Distribution"
+        ])
+        assert result.exit_code == 0, result.output
+        assert os.path.exists("out.png")
+
+
+def test_pie_json():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("data.json", "w") as f:
+            f.write('[{"name": "A", "value": 10}, {"name": "B", "value": 20}]')
+        result = runner.invoke(cli, ["pie", "--json", "data.json", "-o", "out.png"])
+        assert result.exit_code == 0, result.output
+        assert os.path.exists("out.png")
+
+
+def test_pie_sql():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        conn = sqlite3.connect("test.db")
+        conn.execute("CREATE TABLE t (name TEXT, value INTEGER)")
+        conn.execute("INSERT INTO t VALUES ('A', 10)")
+        conn.execute("INSERT INTO t VALUES ('B', 20)")
+        conn.commit()
+        conn.close()
+        result = runner.invoke(cli, ["pie", "--sql", "test.db", "SELECT * FROM t", "-o", "out.png"])
+        assert result.exit_code == 0, result.output
+        assert os.path.exists("out.png")
+
+
+# --- Histogram ---
+
+def test_histogram_csv():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("data.csv", "w") as f:
+            f.write("score\n85\n90\n78\n92\n88\n76\n95\n82\n89\n91\n")
+        result = runner.invoke(cli, ["histogram", "--csv", "-y", "score", "data.csv", "-o", "out.png"])
+        assert result.exit_code == 0, result.output
+        assert os.path.exists("out.png")
+        assert os.path.getsize("out.png") > 0
+
+
+def test_histogram_bins():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("data.csv", "w") as f:
+            f.write("value\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n")
+        result = runner.invoke(cli, [
+            "histogram", "--csv", "-y", "value", "data.csv",
+            "-o", "out.png", "--bins", "5"
+        ])
+        assert result.exit_code == 0, result.output
+        assert os.path.exists("out.png")
+
+
+def test_histogram_auto_column():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("data.csv", "w") as f:
+            f.write("name,value\na,85\nb,90\nc,78\nd,92\ne,88\n")
+        result = runner.invoke(cli, ["histogram", "--csv", "data.csv", "-o", "out.png"])
+        assert result.exit_code == 0, result.output
+        assert os.path.exists("out.png")
+
+
+def test_histogram_json():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("data.json", "w") as f:
+            f.write('[{"value": 10}, {"value": 20}, {"value": 15}, {"value": 25}]')
+        result = runner.invoke(cli, ["histogram", "--json", "data.json", "-o", "out.png"])
+        assert result.exit_code == 0, result.output
+        assert os.path.exists("out.png")
+
+
+def test_histogram_sql():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        conn = sqlite3.connect("test.db")
+        conn.execute("CREATE TABLE t (value REAL)")
+        for v in [10, 20, 15, 25, 30, 12, 18]:
+            conn.execute("INSERT INTO t VALUES (?)", (v,))
+        conn.commit()
+        conn.close()
+        result = runner.invoke(cli, ["histogram", "--sql", "test.db", "SELECT * FROM t", "-o", "out.png"])
+        assert result.exit_code == 0, result.output
+        assert os.path.exists("out.png")
+
+
+def test_histogram_with_title():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("data.csv", "w") as f:
+            f.write("score\n85\n90\n78\n92\n88\n")
+        result = runner.invoke(cli, [
+            "histogram", "--csv", "-y", "score", "data.csv", "-o", "out.png",
+            "--title", "Score Distribution", "--xlabel", "Score", "--ylabel", "Frequency"
+        ])
+        assert result.exit_code == 0, result.output
+        assert os.path.exists("out.png")
