@@ -1,3 +1,5 @@
+import html as html_mod
+import json as json_mod
 import os
 import sqlite3
 import sys
@@ -12,6 +14,127 @@ from chartroom.charts import (
     render_pie,
     render_histogram,
 )
+
+
+def _fmt_num(val):
+    """Format a number: drop trailing .0 for clean display."""
+    if isinstance(val, float) and val == int(val):
+        return str(int(val))
+    return str(val)
+
+
+def _generate_alt_text(chart_type, rows, x_col, y_cols, title=None):
+    """Generate descriptive alt text based on chart data."""
+    if title:
+        return title
+
+    type_labels = {
+        "bar": "Bar chart",
+        "line": "Line chart",
+        "scatter": "Scatter plot",
+        "pie": "Pie chart",
+        "histogram": "Histogram",
+    }
+    label = type_labels.get(chart_type, "Chart")
+    n = len(rows)
+
+    if chart_type == "histogram":
+        col = y_cols[0] if y_cols else "values"
+        vals = []
+        for r in rows:
+            try:
+                vals.append(float(r[col]))
+            except (ValueError, TypeError, KeyError):
+                continue
+        if vals:
+            lo, hi = min(vals), max(vals)
+            if n <= 6:
+                formatted = ", ".join(_fmt_num(v) for v in vals)
+                return f"{label} of {col} values: {formatted}"
+            return (
+                f"{label} of {len(vals)} {col} values "
+                f"ranging from {_fmt_num(lo)} to {_fmt_num(hi)}"
+            )
+        return f"{label} of {col}"
+
+    if chart_type == "pie":
+        y_col = y_cols[0] if y_cols else None
+        if x_col and y_col:
+            pairs = []
+            for r in rows:
+                try:
+                    pairs.append((r[x_col], float(r[y_col])))
+                except (ValueError, TypeError, KeyError):
+                    continue
+            if pairs:
+                total = sum(v for _, v in pairs)
+                if n <= 6 and total > 0:
+                    parts = []
+                    for name, val in pairs:
+                        pct = val / total * 100
+                        parts.append(f"{name} ({pct:.0f}%)")
+                    return f"{label} showing {', '.join(parts)}"
+                elif total > 0:
+                    sorted_pairs = sorted(pairs, key=lambda p: p[1], reverse=True)
+                    top = sorted_pairs[:3]
+                    parts = []
+                    for name, val in top:
+                        pct = val / total * 100
+                        parts.append(f"{name} ({pct:.0f}%)")
+                    return f"{label} of {n} categories. " f"Largest: {', '.join(parts)}"
+        return f"{label} of {x_col or 'categories'}"
+
+    # bar, line, scatter — numeric y columns
+    if x_col and y_cols:
+        for y_col in y_cols[:1]:
+            vals = []
+            for r in rows:
+                try:
+                    vals.append((r.get(x_col, ""), float(r[y_col])))
+                except (ValueError, TypeError, KeyError):
+                    continue
+            if not vals:
+                continue
+
+            y_values = [v for _, v in vals]
+            lo, hi = min(y_values), max(y_values)
+
+            if n <= 6:
+                parts = [f"{name}: {_fmt_num(val)}" for name, val in vals]
+                series_note = ""
+                if len(y_cols) > 1:
+                    series_note = f" and {len(y_cols) - 1} more series"
+                return (
+                    f"{label} of {y_col} by {x_col} \u2014 "
+                    f"{', '.join(parts)}{series_note}"
+                )
+            else:
+                max_pair = max(vals, key=lambda p: p[1])
+                min_pair = min(vals, key=lambda p: p[1])
+                series_note = ""
+                if len(y_cols) > 1:
+                    series_note = f" ({len(y_cols)} series)"
+                return (
+                    f"{label} of {y_col} by {x_col}{series_note}. "
+                    f"{n} points, ranging from {_fmt_num(lo)} ({min_pair[0]}) "
+                    f"to {_fmt_num(hi)} ({max_pair[0]})"
+                )
+
+    return label
+
+
+def _format_output(output_path, fmt, alt_text):
+    """Format the output according to the chosen output format."""
+    if fmt == "markdown":
+        return f"![{alt_text}]({output_path})"
+    elif fmt == "html":
+        escaped_alt = html_mod.escape(alt_text, quote=True)
+        return f'<img src="{output_path}" alt="{escaped_alt}">'
+    elif fmt == "json":
+        return json_mod.dumps({"path": output_path, "alt": alt_text})
+    elif fmt == "alt":
+        return alt_text
+    return output_path
 
 
 def _resolve_output(output: str | None) -> str:
@@ -104,6 +227,15 @@ _common_options = [
         "--style", default=None, help="Matplotlib style (e.g. ggplot, dark_background)"
     ),
     click.option("--dpi", default=100, type=int, help="Output DPI"),
+    click.option(
+        "-f",
+        "--output-format",
+        "output_format",
+        default="path",
+        type=click.Choice(["path", "markdown", "html", "json", "alt"]),
+        help="Output format (default: path)",
+    ),
+    click.option("--alt", default=None, help="Alt text for the generated image"),
 ]
 
 
@@ -141,6 +273,8 @@ def _run_chart(
     **extra,
 ):
     """Common logic for all chart subcommands."""
+    output_format = extra.pop("output_format", "path")
+    alt = extra.pop("alt", None)
     try:
         rows = _load_data(file, csv, tsv, json, jsonl, sql)
         x_col, y_cols = resolve_columns(rows, x, y, chart_type=chart_type)
@@ -159,7 +293,13 @@ def _run_chart(
             dpi=dpi,
             **extra,
         )
-        click.echo(output_path)
+        if output_format == "path":
+            click.echo(output_path)
+        else:
+            alt_text = alt or _generate_alt_text(
+                chart_type, rows, x_col, y_cols, title=title
+            )
+            click.echo(_format_output(output_path, output_format, alt_text))
     except click.UsageError:
         raise
     except (ValueError, sqlite3.OperationalError) as e:
@@ -208,6 +348,8 @@ def bar(
     height,
     style,
     dpi,
+    output_format,
+    alt,
 ):
     "Create a bar chart"
     _run_chart(
@@ -229,6 +371,8 @@ def bar(
         height,
         style,
         dpi,
+        output_format=output_format,
+        alt=alt,
     )
 
 
@@ -251,6 +395,8 @@ def line(
     height,
     style,
     dpi,
+    output_format,
+    alt,
 ):
     "Create a line chart"
     _run_chart(
@@ -272,6 +418,8 @@ def line(
         height,
         style,
         dpi,
+        output_format=output_format,
+        alt=alt,
     )
 
 
@@ -294,6 +442,8 @@ def scatter(
     height,
     style,
     dpi,
+    output_format,
+    alt,
 ):
     "Create a scatter plot"
     _run_chart(
@@ -315,6 +465,8 @@ def scatter(
         height,
         style,
         dpi,
+        output_format=output_format,
+        alt=alt,
     )
 
 
@@ -337,6 +489,8 @@ def pie(
     height,
     style,
     dpi,
+    output_format,
+    alt,
 ):
     "Create a pie chart"
     _run_chart(
@@ -358,6 +512,8 @@ def pie(
         height,
         style,
         dpi,
+        output_format=output_format,
+        alt=alt,
     )
 
 
@@ -382,6 +538,8 @@ def histogram(
     style,
     dpi,
     bins,
+    output_format,
+    alt,
 ):
     "Create a histogram"
     _run_chart(
@@ -404,4 +562,6 @@ def histogram(
         style,
         dpi,
         bins=bins,
+        output_format=output_format,
+        alt=alt,
     )

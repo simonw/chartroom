@@ -72,6 +72,34 @@ chartroom bar --csv data.csv -o sales.png
 
 The full absolute path of the output file is printed to stdout.
 
+### Output format
+
+Use `-f` / `--output-format` to control what is printed to stdout:
+
+```bash
+# Default: just the file path
+chartroom bar --csv data.csv
+# /path/to/chart.png
+
+# Markdown image syntax
+chartroom bar --csv data.csv -f markdown --alt "Sales by region"
+# ![Sales by region](/path/to/chart.png)
+
+# HTML img tag
+chartroom bar --csv data.csv -f html --alt "Sales by region"
+# <img src="/path/to/chart.png" alt="Sales by region">
+
+# JSON with path and alt text
+chartroom bar --csv data.csv -f json
+# {"path": "/path/to/chart.png", "alt": "Bar chart of value by name — ..."}
+
+# Just the alt text
+chartroom bar --csv data.csv -f alt
+# Bar chart of value by name — alice: 10, bob: 20, charlie: 15
+```
+
+When `--alt` is omitted, alt text is auto-generated from the chart title (if set) or from the chart type and data. Small datasets get all values listed; larger datasets get a summary with range and extremes.
+
 ### Styling
 
 ```bash

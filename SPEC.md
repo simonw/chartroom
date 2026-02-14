@@ -49,6 +49,25 @@ Not required (and not allowed) when using `--sql`.
 2. Otherwise: first column → x, second column → y.
 3. For multi-column data without explicit `-y`, only the second column is used as y (user must explicitly request more with multiple `-y` flags).
 
+### Output Format
+
+- `-f` / `--output-format FORMAT` — Controls what is printed to stdout. Choices:
+  - `path` (default) — Print the absolute file path (current behavior)
+  - `markdown` — Markdown image syntax: `![alt text](/path/to/chart.png)`
+  - `html` — HTML image tag: `<img src="/path/to/chart.png" alt="alt text">`
+  - `json` — JSON object: `{"path": "/path/to/chart.png", "alt": "alt text"}`
+  - `alt` — Just the alt text string, no path
+
+- `--alt TEXT` — Provide explicit alt text. When omitted, alt text is auto-generated:
+  1. If `--title` is set, the title is used as alt text
+  2. Otherwise, a description is generated from the chart type and data:
+     - Small datasets (≤6 items): lists all values (e.g. "Bar chart of value by name — alice: 10, bob: 20, charlie: 15")
+     - Large datasets: summarizes range and extremes (e.g. "Bar chart of value by name. 20 points, ranging from 0 (item0) to 190 (item19)")
+     - Pie charts: shows percentages for small datasets, top 3 categories for large ones
+     - Histograms: lists values or shows range depending on dataset size
+
+- `--alt` is silently ignored when using `-f path` (the default).
+
 ### Styling Options (all subcommands)
 
 - `--title TEXT` — Chart title
