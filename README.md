@@ -110,7 +110,7 @@ The auto-generated alt text adapts to both chart type and dataset size:
 - **Pie charts** — Small datasets show each category with its percentage (e.g. `Pie chart showing Rent (57%), Food (19%), Transport (10%), Other (14%)`). Larger datasets list the top 3 categories by share.
 - **Histograms** — Small datasets list all values. Larger datasets describe the distribution range (e.g. `Histogram of 10 score values ranging from 76 to 95`).
 
-If a `--title` is set and no `--alt` is provided, the title is used as the alt text. The alt text is embedded automatically when using `-f markdown`, `-f html`, or `-f json` output formats, or can be printed on its own with `-f alt`.
+If a `--title` is set, it is prepended to the generated alt text (e.g. `Team Scores. Bar chart of value by name — alice: 10, bob: 20, charlie: 15`). The `--alt` option overrides this entirely with custom text. The alt text is embedded automatically when using `-f markdown`, `-f html`, or `-f json` output formats, or can be printed on its own with `-f alt`.
 
 See the [alt text demo](https://github.com/simonw/chartroom/blob/main/demo/alt-text.md) for worked examples of every chart type and output format.
 
