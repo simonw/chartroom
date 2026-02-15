@@ -94,38 +94,48 @@ def _describe_chart(chart_type, rows, x_col, y_cols):
 
     # bar, line, scatter — numeric y columns
     if x_col and y_cols:
-        for y_col in y_cols[:1]:
+        all_series = []
+        for y_col in y_cols:
             vals = []
             for r in rows:
                 try:
                     vals.append((r.get(x_col, ""), float(r[y_col])))
                 except (ValueError, TypeError, KeyError):
                     continue
-            if not vals:
-                continue
+            if vals:
+                all_series.append((y_col, vals))
 
-            y_values = [v for _, v in vals]
-            lo, hi = min(y_values), max(y_values)
-
+        if all_series:
             if n <= 6:
-                parts = [f"{name}: {_fmt_num(val)}" for name, val in vals]
-                series_note = ""
-                if len(y_cols) > 1:
-                    series_note = f" and {len(y_cols) - 1} more series"
-                return (
-                    f"{label} of {y_col} by {x_col} \u2014 "
-                    f"{', '.join(parts)}{series_note}"
-                )
+                series_descriptions = []
+                for y_col, vals in all_series:
+                    parts = [f"{name}: {_fmt_num(val)}" for name, val in vals]
+                    series_descriptions.append(
+                        f"{y_col} by {x_col} \u2014 {', '.join(parts)}"
+                    )
+                return f"{label} of {'; '.join(series_descriptions)}"
             else:
-                max_pair = max(vals, key=lambda p: p[1])
-                min_pair = min(vals, key=lambda p: p[1])
-                series_note = ""
-                if len(y_cols) > 1:
-                    series_note = f" ({len(y_cols)} series)"
+                first_col, first_vals = all_series[0]
+                first_y = [v for _, v in first_vals]
+                max_pair = max(first_vals, key=lambda p: p[1])
+                min_pair = min(first_vals, key=lambda p: p[1])
+                if len(all_series) == 1:
+                    return (
+                        f"{label} of {first_col} by {x_col}. "
+                        f"{n} points, ranging from "
+                        f"{_fmt_num(min(first_y))} ({min_pair[0]}) "
+                        f"to {_fmt_num(max(first_y))} ({max_pair[0]})"
+                    )
+                series_descriptions = []
+                for y_col, vals in all_series:
+                    y_values = [v for _, v in vals]
+                    s_lo, s_hi = min(y_values), max(y_values)
+                    series_descriptions.append(
+                        f"{y_col} ({_fmt_num(s_lo)}\u2013{_fmt_num(s_hi)})"
+                    )
                 return (
-                    f"{label} of {y_col} by {x_col}{series_note}. "
-                    f"{n} points, ranging from {_fmt_num(lo)} ({min_pair[0]}) "
-                    f"to {_fmt_num(hi)} ({max_pair[0]})"
+                    f"{label} by {x_col} ({n} points): "
+                    f"{', '.join(series_descriptions)}"
                 )
 
     return label

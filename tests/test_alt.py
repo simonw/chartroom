@@ -524,5 +524,98 @@ def test_auto_alt_multi_series():
             ]
         )
         assert alt == snapshot(
-            "Bar chart of q1 by name — alice: 10, bob: 20 and 1 more series"
+            "Bar chart of q1 by name \u2014 alice: 10, bob: 20; q2 by name \u2014 alice: 15, bob: 25"
+        )
+
+
+def test_auto_alt_multi_series_line():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("data.csv", "w") as f:
+            f.write(
+                "month,revenue,costs\n"
+                "Jan,100,80\nFeb,120,90\nMar,115,85\n"
+                "Apr,140,95\nMay,160,100\nJun,155,110\n"
+            )
+        alt = _get_alt(
+            [
+                "line",
+                "--csv",
+                "-x",
+                "month",
+                "-y",
+                "revenue",
+                "-y",
+                "costs",
+                "data.csv",
+                "-o",
+                "out.png",
+                "-f",
+                "alt",
+            ]
+        )
+        assert alt == snapshot(
+            "Line chart of revenue by month \u2014 Jan: 100, Feb: 120, Mar: 115, Apr: 140, May: 160, Jun: 155; costs by month \u2014 Jan: 80, Feb: 90, Mar: 85, Apr: 95, May: 100, Jun: 110"
+        )
+
+
+def test_auto_alt_multi_series_line_with_title():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("data.csv", "w") as f:
+            f.write(
+                "month,revenue,costs\n"
+                "Jan,100,80\nFeb,120,90\nMar,115,85\n"
+                "Apr,140,95\nMay,160,100\nJun,155,110\n"
+            )
+        alt = _get_alt(
+            [
+                "line",
+                "--csv",
+                "-x",
+                "month",
+                "-y",
+                "revenue",
+                "-y",
+                "costs",
+                "--title",
+                "Revenue vs Costs",
+                "data.csv",
+                "-o",
+                "out.png",
+                "-f",
+                "alt",
+            ]
+        )
+        assert alt == snapshot(
+            "Revenue vs Costs. Line chart of revenue by month \u2014 Jan: 100, Feb: 120, Mar: 115, Apr: 140, May: 160, Jun: 155; costs by month \u2014 Jan: 80, Feb: 90, Mar: 85, Apr: 95, May: 100, Jun: 110"
+        )
+
+
+def test_auto_alt_multi_series_large():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("data.csv", "w") as f:
+            f.write("day,temp,humidity\n")
+            for i in range(10):
+                f.write(f"day{i},{20 + i},{50 + i * 2}\n")
+        alt = _get_alt(
+            [
+                "line",
+                "--csv",
+                "-x",
+                "day",
+                "-y",
+                "temp",
+                "-y",
+                "humidity",
+                "data.csv",
+                "-o",
+                "out.png",
+                "-f",
+                "alt",
+            ]
+        )
+        assert alt == snapshot(
+            "Line chart by day (10 points): temp (20\u201329), humidity (50\u201368)"
         )
