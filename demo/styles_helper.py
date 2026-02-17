@@ -3,7 +3,7 @@
 Usage:
     python demo/styles_helper.py STYLE_NAME [-o OUTPUT_PATH]
 
-Produces a single wide image with bar, line, scatter, pie, and histogram
+Produces a single wide image with bar, line, scatter, pie, histogram, and radar
 subplots side by side, all rendered in the specified style.
 """
 
@@ -27,12 +27,19 @@ SCATTER_DATA = {
 }
 PIE_DATA = {"labels": ["Rent", "Food", "Transport", "Fun", "Other"], "sizes": [40, 20, 15, 15, 10]}
 HIST_DATA = [72, 85, 91, 78, 88, 95, 67, 82, 90, 76, 89, 93, 71, 84, 87, 92, 79, 86, 94, 81]
+RADAR_DATA = {
+    "labels": ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"],
+    "fighter": [18, 14, 16, 10, 12, 8],
+    "wizard": [8, 12, 10, 18, 14, 16],
+}
 
 
 def generate_style_image(style_name: str, output_path: str):
-    """Create a composite image with 5 chart types in the given style."""
+    """Create a composite image with 6 chart types in the given style."""
     with plt.style.context(style_name):
-        fig, axes = plt.subplots(1, 5, figsize=(25, 4.5))
+        fig = plt.figure(figsize=(30, 4.5))
+        axes = [fig.add_subplot(1, 6, i + 1) for i in range(5)]
+        axes.append(fig.add_subplot(1, 6, 6, polar=True))
 
         # Bar chart
         ax = axes[0]
@@ -63,6 +70,20 @@ def generate_style_image(style_name: str, output_path: str):
         ax = axes[4]
         ax.hist(HIST_DATA, bins=8)
         ax.set_title("Histogram")
+
+        # Radar chart
+        ax = axes[5]
+        angles = np.linspace(0, 2 * np.pi, len(RADAR_DATA["labels"]), endpoint=False).tolist()
+        angles_closed = angles + [angles[0]]
+        ax.set_theta_offset(np.pi / 2)
+        ax.set_theta_direction(-1)
+        ax.set_thetagrids(np.degrees(angles), RADAR_DATA["labels"], fontsize=7)
+        for series, name in [(RADAR_DATA["fighter"], "fighter"), (RADAR_DATA["wizard"], "wizard")]:
+            values = series + [series[0]]
+            ax.plot(angles_closed, values, marker="o", label=name)
+            ax.fill(angles_closed, values, alpha=0.25)
+        ax.legend(fontsize=7, loc="upper right", bbox_to_anchor=(1.3, 1.1))
+        ax.set_title("Radar")
 
         fig.suptitle(style_name, fontsize=16, fontweight="bold")
         fig.tight_layout()
