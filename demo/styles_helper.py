@@ -28,7 +28,7 @@ SCATTER_DATA = {
 PIE_DATA = {"labels": ["Rent", "Food", "Transport", "Fun", "Other"], "sizes": [40, 20, 15, 15, 10]}
 HIST_DATA = [72, 85, 91, 78, 88, 95, 67, 82, 90, 76, 89, 93, 71, 84, 87, 92, 79, 86, 94, 81]
 RADAR_DATA = {
-    "labels": ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"],
+    "labels": ["STR", "DEX", "CON", "INT", "WIS", "CHA"],
     "fighter": [18, 14, 16, 10, 12, 8],
     "wizard": [8, 12, 10, 18, 14, 16],
 }
