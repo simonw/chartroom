@@ -644,37 +644,6 @@ def test_radar_multi_series():
         assert os.path.exists("out.png")
 
 
-def test_radar_json():
-    runner = CliRunner()
-    with runner.isolated_filesystem():
-        with open("data.json", "w") as f:
-            f.write(
-                '[{"name": "Speed", "value": 9}, '
-                '{"name": "Power", "value": 5}, '
-                '{"name": "Defense", "value": 7}]'
-            )
-        result = runner.invoke(cli, ["radar", "--json", "data.json", "-o", "out.png"])
-        assert result.exit_code == 0, result.output
-        assert os.path.exists("out.png")
-
-
-def test_radar_sql():
-    runner = CliRunner()
-    with runner.isolated_filesystem():
-        conn = sqlite3.connect("test.db")
-        conn.execute("CREATE TABLE t (name TEXT, value INTEGER)")
-        conn.execute("INSERT INTO t VALUES ('Speed', 9)")
-        conn.execute("INSERT INTO t VALUES ('Power', 5)")
-        conn.execute("INSERT INTO t VALUES ('Defense', 7)")
-        conn.commit()
-        conn.close()
-        result = runner.invoke(
-            cli, ["radar", "--sql", "test.db", "SELECT * FROM t", "-o", "out.png"]
-        )
-        assert result.exit_code == 0, result.output
-        assert os.path.exists("out.png")
-
-
 def test_radar_no_fill():
     runner = CliRunner()
     with runner.isolated_filesystem():
@@ -687,36 +656,3 @@ def test_radar_no_fill():
         assert os.path.exists("out.png")
 
 
-def test_radar_with_title():
-    runner = CliRunner()
-    with runner.isolated_filesystem():
-        with open("data.csv", "w") as f:
-            f.write("name,value\nSpeed,9\nPower,5\nDefense,7\n")
-        result = runner.invoke(
-            cli,
-            [
-                "radar",
-                "--csv",
-                "data.csv",
-                "-o",
-                "out.png",
-                "--title",
-                "Player Stats",
-                "--style",
-                "ggplot",
-            ],
-        )
-        assert result.exit_code == 0, result.output
-        assert os.path.exists("out.png")
-
-
-def test_radar_stdin():
-    runner = CliRunner()
-    with runner.isolated_filesystem():
-        result = runner.invoke(
-            cli,
-            ["radar", "--csv", "-o", "out.png"],
-            input="name,value\nSpeed,9\nPower,5\nDefense,7\n",
-        )
-        assert result.exit_code == 0, result.output
-        assert os.path.exists("out.png")

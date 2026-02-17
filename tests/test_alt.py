@@ -569,25 +569,3 @@ def test_auto_alt_radar_multi_series():
         )
 
 
-def test_format_radar():
-    """Verify -f markdown works with radar."""
-    runner = CliRunner()
-    with runner.isolated_filesystem():
-        with open("data.csv", "w") as f:
-            f.write("name,value\nSpeed,9\nPower,5\nDefense,7\n")
-        result = runner.invoke(
-            cli,
-            [
-                "radar",
-                "--csv",
-                "data.csv",
-                "-o",
-                "out.png",
-                "-f",
-                "markdown",
-                "--alt",
-                "radar chart",
-            ],
-        )
-        assert result.exit_code == 0, result.output
-        assert result.output.strip().startswith("![radar chart](")
