@@ -121,6 +121,28 @@ uv run chartroom histogram --csv -y score /tmp/scores.csv -o /tmp/x.png -f alt -
 Score Distribution. Histogram of 10 score values ranging from 76 to 95
 ```
 
+## Radar Chart
+
+Radar chart alt text follows the same pattern as bar/line/scatter — small datasets list every axis value:
+
+```bash {image}
+echo "attribute,fighter,wizard
+STR,18,8
+DEX,14,12
+CON,16,10
+INT,10,18
+WIS,12,14
+CHA,8,16" > /tmp/radar.csv && uv run chartroom radar --csv /tmp/radar.csv -x attribute -y fighter -y wizard -o demo/radar-stats.png --title "Fighter vs Wizard"
+```
+
+```bash
+uv run chartroom radar --csv /tmp/radar.csv -x attribute -y fighter -y wizard -o /tmp/x.png -f alt --title "Fighter vs Wizard"
+```
+
+```output
+Fighter vs Wizard. Radar chart of fighter by attribute — STR: 18, DEX: 14, CON: 16, INT: 10, WIS: 12, CHA: 8 and 1 more series
+```
+
 ## Markdown Output Format
 
 Using `-f markdown` embeds the alt text directly in markdown image syntax:
