@@ -2,7 +2,7 @@
 
 *2026-02-14T19:54:34Z by Showboat 0.5.0*
 
-Each image below shows the same five chart types — bar, line, scatter, pie, and histogram — rendered using a different matplotlib style. Use `--style NAME` with any chartroom command to apply a style.
+Each image below shows the same six chart types — bar, line, scatter, pie, histogram, and radar — rendered using a different matplotlib style. Use `--style NAME` with any chartroom command to apply a style.
 
 ### Solarize_Light2
 

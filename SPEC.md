@@ -167,6 +167,26 @@ Example:
 chartroom histogram --csv -y score results.csv --bins 20 --title "Score Distribution"
 ```
 
+### `chartroom radar`
+
+Radar (spider) chart.
+
+```
+chartroom radar [OPTIONS] [FILE]
+```
+
+- Each row is one axis/spoke of the radar. The `-x` column provides axis labels.
+- Single series: one polygon
+- Multi-series (`-y col1 -y col2`): overlaid polygons with a legend
+- `--fill/--no-fill` — Fill radar polygons with translucent color (default: fill)
+- `--xlabel` and `--ylabel` are ignored for radar charts
+
+Example:
+```bash
+chartroom radar --csv -x attribute -y player1 -y player2 data.csv --title "Player Comparison"
+chartroom radar --csv data.csv --no-fill -f markdown
+```
+
 ## Data Type Handling
 
 - CSV/TSV values are strings by default. The tool attempts to convert y-axis values to `float`. If conversion fails, the tool exits with an error message.
