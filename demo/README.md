@@ -101,6 +101,20 @@ echo 'score
 
 ![3d97c855-2026-02-14](3d97c855-2026-02-14.png)
 
+## Radar Chart
+
+Radar (spider) charts display multivariate data on axes radiating from a center point. Each row is one axis, and multiple -y columns overlay as separate series.
+
+```bash {image}
+echo 'attribute,fighter,wizard
+STR,18,8
+DEX,14,12
+CON,16,10
+INT,10,18
+WIS,12,14
+CHA,8,16' | uv run chartroom radar --csv -x attribute -y fighter -y wizard --title 'Fighter vs Wizard'
+```
+
 ## Input Formats
 
 ### JSON input

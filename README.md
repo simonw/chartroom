@@ -38,6 +38,7 @@ chartroom --help
 - `chartroom scatter` - Scatter plot
 - `chartroom pie` - Pie chart
 - `chartroom histogram` - Histogram
+- `chartroom radar` - Radar (spider) chart (supports multiple series, `--fill/--no-fill`)
 
 ### Data input
 
@@ -121,6 +122,7 @@ The auto-generated alt text adapts to both chart type and dataset size:
 - **Bar, line, and scatter charts** — Small datasets (6 rows or fewer) list every value (e.g. `Bar chart of value by name — alice: 10, bob: 20, charlie: 15`). Larger datasets summarize the count, range, and extremes (e.g. `Bar chart of population by city. 10 points, ranging from 17118 (Dhaka) to 37400 (Tokyo)`). Multiple y-columns are noted as additional series.
 - **Pie charts** — Small datasets show each category with its percentage (e.g. `Pie chart showing Rent (57%), Food (19%), Transport (10%), Other (14%)`). Larger datasets list the top 3 categories by share.
 - **Histograms** — Small datasets list all values. Larger datasets describe the distribution range (e.g. `Histogram of 10 score values ranging from 76 to 95`).
+- **Radar charts** — Follow the same pattern as bar/line/scatter: small datasets list every axis value, larger datasets summarize the range and extremes. Multiple y-columns are noted as additional series.
 
 If a `--title` is set, it is prepended to the generated alt text (e.g. `Team Scores. Bar chart of value by name — alice: 10, bob: 20, charlie: 15`). The `--alt` option overrides this entirely with custom text. The alt text is embedded automatically when using `-f markdown`, `-f html`, or `-f json` output formats, or can be printed on its own with `-f alt`.
 
@@ -215,6 +217,7 @@ Commands:
   histogram  Create a histogram showing the distribution of a numeric column.
   line       Create a line chart from columnar data.
   pie        Create a pie chart from columnar data.
+  radar      Create a radar (spider) chart from columnar data.
   scatter    Create a scatter plot from columnar data.
   styles     List available matplotlib styles.
 ```
@@ -454,6 +457,56 @@ Options:
                                   description is generated from the chart type
                                   and data.
   --bins INTEGER                  Number of histogram bins
+  --help                          Show this message and exit.
+```
+
+### chartroom radar
+
+```
+Usage: chartroom radar [OPTIONS] [FILE]
+
+  Create a radar (spider) chart from columnar data.
+
+  Each row is one axis of the radar. The -x column provides axis labels, and
+  each -y column is a series plotted on the radar.
+
+  Examples:
+    chartroom radar --csv data.csv
+    chartroom radar --csv data.csv -x attribute -y player1 -y player2
+    chartroom radar --csv data.csv --no-fill -f markdown
+
+Options:
+  -o, --output TEXT               Output file path (default: chart.png)
+  -x TEXT                         Column for x-axis / categories
+  -y TEXT                         Column(s) for y-axis / values (repeatable)
+  --csv                           Parse input as CSV
+  --tsv                           Parse input as TSV
+  --json                          Parse input as JSON
+  --jsonl                         Parse input as newline-delimited JSON
+  --sql TEXT...                   Query a SQLite database. Takes two arguments:
+                                  DATABASE QUERY. Example: --sql mydb.sqlite
+                                  'SELECT name, count FROM items'
+  --title TEXT                    Chart title, also prepended to generated alt
+                                  text
+  --xlabel TEXT                   X-axis label
+  --ylabel TEXT                   Y-axis label
+  --width FLOAT                   Figure width in inches
+  --height FLOAT                  Figure height in inches
+  --style TEXT                    Matplotlib style (e.g. ggplot,
+                                  dark_background)
+  --dpi INTEGER                   Output DPI
+  -f, --output-format [path|markdown|html|json|alt]
+                                  How to format stdout. path (default): absolute
+                                  file path. markdown: ![alt](path). html: <img
+                                  src=path alt=...>. json: {"path": ..., "alt":
+                                  ...}. alt: just the alt text, no path. Alt
+                                  text is auto-generated from chart type and
+                                  data unless --alt is given.
+  --alt TEXT                      Override the auto-generated alt text. Ignored
+                                  when -f is path (the default). When omitted, a
+                                  description is generated from the chart type
+                                  and data.
+  --fill / --no-fill              Fill the radar polygons (default: fill)
   --help                          Show this message and exit.
 ```
 

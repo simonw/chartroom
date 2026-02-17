@@ -23,6 +23,7 @@ def test_help():
     assert "scatter" in result.output
     assert "pie" in result.output
     assert "histogram" in result.output
+    assert "radar" in result.output
 
 
 def test_bar_help():
@@ -599,3 +600,59 @@ def test_histogram_with_title():
         )
         assert result.exit_code == 0, result.output
         assert os.path.exists("out.png")
+
+
+# --- Radar chart ---
+
+
+def test_radar_csv():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("data.csv", "w") as f:
+            f.write("name,value\nSpeed,9\nPower,5\nDefense,7\nAccuracy,8\nStamina,6\n")
+        result = runner.invoke(cli, ["radar", "--csv", "data.csv", "-o", "out.png"])
+        assert result.exit_code == 0, result.output
+        assert os.path.exists("out.png")
+        assert os.path.getsize("out.png") > 0
+
+
+def test_radar_multi_series():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("data.csv", "w") as f:
+            f.write(
+                "attribute,player1,player2\n"
+                "Speed,9,7\nPower,5,8\nDefense,7,6\nAccuracy,8,9\nStamina,6,5\n"
+            )
+        result = runner.invoke(
+            cli,
+            [
+                "radar",
+                "--csv",
+                "-x",
+                "attribute",
+                "-y",
+                "player1",
+                "-y",
+                "player2",
+                "data.csv",
+                "-o",
+                "out.png",
+            ],
+        )
+        assert result.exit_code == 0, result.output
+        assert os.path.exists("out.png")
+
+
+def test_radar_no_fill():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("data.csv", "w") as f:
+            f.write("name,value\nSpeed,9\nPower,5\nDefense,7\n")
+        result = runner.invoke(
+            cli, ["radar", "--csv", "data.csv", "-o", "out.png", "--no-fill"]
+        )
+        assert result.exit_code == 0, result.output
+        assert os.path.exists("out.png")
+
+
