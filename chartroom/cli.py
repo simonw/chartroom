@@ -364,10 +364,7 @@ def _render_histogram_wrapper(rows, x_col, y_cols, output_path, bins=10, **kwarg
     render_histogram(rows, y_cols[0], output_path, bins=bins, **kwargs)
 
 
-def _render_radar_wrapper(
-    rows, x_col, y_cols, output_path, xlabel=None, ylabel=None, **kwargs
-):
-    # Radar charts ignore xlabel/ylabel
+def _render_radar_wrapper(rows, x_col, y_cols, output_path, **kwargs):
     render_radar(rows, x_col, y_cols, output_path, **kwargs)
 
 

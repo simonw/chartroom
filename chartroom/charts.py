@@ -208,6 +208,8 @@ def render_radar(
     y_cols: List[str],
     output_path: str,
     title: Optional[str] = None,
+    xlabel: Optional[str] = None,
+    ylabel: Optional[str] = None,
     width: float = 10,
     height: float = 6,
     style: Optional[str] = None,
@@ -233,10 +235,6 @@ def render_radar(
         if fill:
             ax.fill(plot_angles, plot_values, alpha=0.25)
 
-    if title:
-        ax.set_title(title, pad=20)
-    if len(y_cols) > 1:
-        ax.legend(loc="upper right", bbox_to_anchor=(1.3, 1.1))
-    fig.tight_layout()
-    fig.savefig(output_path, dpi=dpi)
-    plt.close(fig)
+    _finalize(
+        fig, ax, output_path, title, xlabel, ylabel, dpi, show_legend=len(y_cols) > 1
+    )
