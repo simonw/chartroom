@@ -13,6 +13,7 @@ from chartroom.charts import (
     render_scatter,
     render_pie,
     render_histogram,
+    render_radar,
 )
 
 
@@ -42,6 +43,7 @@ def _describe_chart(chart_type, rows, x_col, y_cols):
         "scatter": "Scatter plot",
         "pie": "Pie chart",
         "histogram": "Histogram",
+        "radar": "Radar chart",
     }
     label = type_labels.get(chart_type, "Chart")
     n = len(rows)
@@ -362,6 +364,13 @@ def _render_histogram_wrapper(rows, x_col, y_cols, output_path, bins=10, **kwarg
     render_histogram(rows, y_cols[0], output_path, bins=bins, **kwargs)
 
 
+def _render_radar_wrapper(
+    rows, x_col, y_cols, output_path, xlabel=None, ylabel=None, **kwargs
+):
+    # Radar charts ignore xlabel/ylabel
+    render_radar(rows, x_col, y_cols, output_path, **kwargs)
+
+
 @cli.command()
 @common_options
 def bar(
@@ -637,6 +646,68 @@ def histogram(
         style,
         dpi,
         bins=bins,
+        output_format=output_format,
+        alt=alt,
+    )
+
+
+@cli.command()
+@common_options
+@click.option(
+    "--fill/--no-fill", default=True, help="Fill the radar polygons (default: fill)"
+)
+def radar(
+    file,
+    output,
+    x,
+    y,
+    csv,
+    tsv,
+    json,
+    jsonl,
+    sql,
+    title,
+    xlabel,
+    ylabel,
+    width,
+    height,
+    style,
+    dpi,
+    fill,
+    output_format,
+    alt,
+):
+    """Create a radar (spider) chart from columnar data.
+
+    Each row is one axis of the radar. The -x column provides axis labels,
+    and each -y column is a series plotted on the radar.
+
+    \b
+    Examples:
+      chartroom radar --csv data.csv
+      chartroom radar --csv data.csv -x attribute -y player1 -y player2
+      chartroom radar --csv data.csv --no-fill -f markdown
+    """
+    _run_chart(
+        "radar",
+        _render_radar_wrapper,
+        file,
+        output,
+        x,
+        y,
+        csv,
+        tsv,
+        json,
+        jsonl,
+        sql,
+        title,
+        xlabel,
+        ylabel,
+        width,
+        height,
+        style,
+        dpi,
+        fill=fill,
         output_format=output_format,
         alt=alt,
     )

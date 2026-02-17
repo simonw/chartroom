@@ -200,3 +200,43 @@ def render_histogram(
     ax.hist(values, bins=bins)
 
     _finalize(fig, ax, output_path, title, xlabel, ylabel, dpi)
+
+
+def render_radar(
+    rows: List[Dict[str, Any]],
+    x_col: str,
+    y_cols: List[str],
+    output_path: str,
+    title: Optional[str] = None,
+    width: float = 10,
+    height: float = 6,
+    style: Optional[str] = None,
+    dpi: int = 100,
+    fill: bool = True,
+):
+    _apply_style(style)
+    labels = [str(row[x_col]) for row in rows]
+    num_vars = len(labels)
+    angles = np.linspace(0, 2 * np.pi, num_vars, endpoint=False).tolist()
+
+    fig, ax = plt.subplots(figsize=(width, height), subplot_kw=dict(polar=True))
+    ax.set_theta_offset(np.pi / 2)
+    ax.set_theta_direction(-1)
+    ax.set_thetagrids(np.degrees(angles), labels)
+
+    for yc in y_cols:
+        values = _to_float([row[yc] for row in rows], yc)
+        # Close the polygon
+        plot_values = values + [values[0]]
+        plot_angles = angles + [angles[0]]
+        ax.plot(plot_angles, plot_values, label=yc, marker="o")
+        if fill:
+            ax.fill(plot_angles, plot_values, alpha=0.25)
+
+    if title:
+        ax.set_title(title, pad=20)
+    if len(y_cols) > 1:
+        ax.legend(loc="upper right", bbox_to_anchor=(1.3, 1.1))
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=dpi)
+    plt.close(fig)

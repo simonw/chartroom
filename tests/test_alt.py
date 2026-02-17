@@ -278,11 +278,11 @@ def test_format_alt_with_explicit_alt():
 
 
 def test_format_works_with_all_chart_types():
-    """Verify -f markdown works across bar, line, pie."""
+    """Verify -f markdown works across bar, line, pie, radar."""
     runner = CliRunner()
     with runner.isolated_filesystem():
         _make_csv()
-        for cmd in ["bar", "line", "pie"]:
+        for cmd in ["bar", "line", "pie", "radar"]:
             result = runner.invoke(
                 cli,
                 [
@@ -526,3 +526,68 @@ def test_auto_alt_multi_series():
         assert alt == snapshot(
             "Bar chart of q1 by name — alice: 10, bob: 20 and 1 more series"
         )
+
+
+def test_auto_alt_radar_small():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("data.csv", "w") as f:
+            f.write("name,value\nSpeed,9\nPower,5\nDefense,7\nAccuracy,8\nStamina,6\n")
+        alt = _get_alt(["radar", "--csv", "data.csv", "-o", "out.png", "-f", "alt"])
+        assert alt == snapshot(
+            "Radar chart of value by name — Speed: 9, Power: 5, Defense: 7, Accuracy: 8, Stamina: 6"
+        )
+
+
+def test_auto_alt_radar_multi_series():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("data.csv", "w") as f:
+            f.write(
+                "attribute,player1,player2\n"
+                "Speed,9,7\nPower,5,8\nDefense,7,6\n"
+            )
+        alt = _get_alt(
+            [
+                "radar",
+                "--csv",
+                "-x",
+                "attribute",
+                "-y",
+                "player1",
+                "-y",
+                "player2",
+                "data.csv",
+                "-o",
+                "out.png",
+                "-f",
+                "alt",
+            ]
+        )
+        assert alt == snapshot(
+            "Radar chart of player1 by attribute — Speed: 9, Power: 5, Defense: 7 and 1 more series"
+        )
+
+
+def test_format_radar():
+    """Verify -f markdown works with radar."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("data.csv", "w") as f:
+            f.write("name,value\nSpeed,9\nPower,5\nDefense,7\n")
+        result = runner.invoke(
+            cli,
+            [
+                "radar",
+                "--csv",
+                "data.csv",
+                "-o",
+                "out.png",
+                "-f",
+                "markdown",
+                "--alt",
+                "radar chart",
+            ],
+        )
+        assert result.exit_code == 0, result.output
+        assert result.output.strip().startswith("![radar chart](")
