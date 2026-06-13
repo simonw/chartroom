@@ -65,6 +65,8 @@ chartroom bar --duckdb :memory: "SELECT name, count FROM 'data.parquet'"
 chartroom bar --duckdb :memory: "SELECT name, count FROM 's3://bucket/data.parquet'"
 ```
 
+See the [DuckDB demo](https://github.com/simonw/chartroom/blob/main/demo/duckdb.md) for worked examples of querying Parquet files, persisted databases, and aggregating CSVs on the fly.
+
 ### Column selection
 
 Columns are auto-detected from common names (`name`/`label`/`x` for x-axis, `value`/`count`/`y` for y-axis), or specify explicitly:
