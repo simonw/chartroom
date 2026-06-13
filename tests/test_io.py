@@ -13,6 +13,7 @@ from chartroom.io import (
     load_rows_from_json,
     load_rows_from_jsonl,
     load_rows_from_sql,
+    load_rows_from_duckdb,
     detect_format,
     resolve_columns,
 )
@@ -113,6 +114,95 @@ def test_load_sql_read_only():
             load_rows_from_sql(db_path, "INSERT INTO t VALUES ('hack')")
     finally:
         os.unlink(db_path)
+
+
+# --- DuckDB ---
+
+
+def test_load_duckdb_memory():
+    """In-memory DuckDB can run a query with no backing file."""
+    rows = load_rows_from_duckdb(
+        ":memory:", "SELECT 'alice' AS name, 10 AS value"
+    )
+    assert rows == [{"name": "alice", "value": 10}]
+
+
+def test_load_duckdb_file():
+    """DuckDB can query a persisted .duckdb database file."""
+    import duckdb
+
+    with tempfile.NamedTemporaryFile(suffix=".duckdb", delete=False) as f:
+        db_path = f.name
+    os.unlink(db_path)  # let DuckDB create it fresh
+    try:
+        conn = duckdb.connect(db_path)
+        conn.execute("CREATE TABLE t (name TEXT, value INTEGER)")
+        conn.execute("INSERT INTO t VALUES ('alice', 10), ('bob', 20)")
+        conn.close()
+
+        rows = load_rows_from_duckdb(
+            db_path, "SELECT name, value FROM t ORDER BY name"
+        )
+        assert rows == [
+            {"name": "alice", "value": 10},
+            {"name": "bob", "value": 20},
+        ]
+    finally:
+        if os.path.exists(db_path):
+            os.unlink(db_path)
+
+
+def test_load_duckdb_query_csv_file():
+    """In-memory DuckDB can query a CSV file directly off disk."""
+    with tempfile.NamedTemporaryFile(
+        suffix=".csv", mode="w", delete=False
+    ) as f:
+        f.write("name,value\nalice,10\nbob,20\n")
+        csv_path = f.name
+    try:
+        rows = load_rows_from_duckdb(
+            ":memory:",
+            f"SELECT name, value FROM read_csv('{csv_path}') ORDER BY name",
+        )
+        assert rows == [
+            {"name": "alice", "value": 10},
+            {"name": "bob", "value": 20},
+        ]
+    finally:
+        os.unlink(csv_path)
+
+
+def test_load_duckdb_file_read_only():
+    """File-backed DuckDB queries run read-only and reject writes."""
+    import duckdb
+
+    with tempfile.NamedTemporaryFile(suffix=".duckdb", delete=False) as f:
+        db_path = f.name
+    os.unlink(db_path)
+    try:
+        conn = duckdb.connect(db_path)
+        conn.execute("CREATE TABLE t (name TEXT)")
+        conn.close()
+
+        with pytest.raises(Exception):
+            load_rows_from_duckdb(db_path, "INSERT INTO t VALUES ('hack')")
+    finally:
+        if os.path.exists(db_path):
+            os.unlink(db_path)
+
+
+def test_load_rows_duckdb_mode():
+    """load_rows dispatches to DuckDB when duckdb_db is given."""
+    rows = load_rows(
+        duckdb_db=":memory:",
+        duckdb_query="SELECT 'alice' AS name, 10 AS value",
+    )
+    assert rows == [{"name": "alice", "value": 10}]
+
+
+def test_load_rows_duckdb_requires_query():
+    with pytest.raises(ValueError, match="--duckdb requires"):
+        load_rows(duckdb_db=":memory:")
 
 
 # --- Auto-detection ---

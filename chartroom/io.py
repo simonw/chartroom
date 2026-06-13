@@ -17,6 +17,28 @@ def load_rows_from_sql(db_path: str, query: str) -> List[Dict[str, Any]]:
         conn.close()
 
 
+def load_rows_from_duckdb(db_path: str, query: str) -> List[Dict[str, Any]]:
+    """Execute a SQL query against a DuckDB database.
+
+    ``db_path`` may be ``:memory:`` for an in-memory database (useful for
+    querying files on disk or in S3 directly, e.g.
+    ``SELECT * FROM read_parquet('s3://bucket/data.parquet')``) or the path to
+    a ``.duckdb`` file. File-backed databases are opened read-only.
+    """
+    import duckdb
+
+    if db_path == ":memory:":
+        conn = duckdb.connect(database=":memory:")
+    else:
+        conn = duckdb.connect(database=db_path, read_only=True)
+    try:
+        cursor = conn.execute(query)
+        columns = [col[0] for col in cursor.description]
+        return [dict(zip(columns, row)) for row in cursor.fetchall()]
+    finally:
+        conn.close()
+
+
 def load_rows_from_csv(
     fp: BinaryIO, encoding: str = "utf-8-sig"
 ) -> List[Dict[str, Any]]:
@@ -81,17 +103,25 @@ def load_rows(
     format: Optional[str] = None,
     sql_db: Optional[str] = None,
     sql_query: Optional[str] = None,
+    duckdb_db: Optional[str] = None,
+    duckdb_query: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """
     Load rows from the given source.
 
-    Either provide fp (with optional format) or sql_db + sql_query.
+    Provide one of: fp (with optional format), sql_db + sql_query, or
+    duckdb_db + duckdb_query.
     Format can be: csv, tsv, json, jsonl, or None for auto-detect.
     """
     if sql_db is not None:
         if sql_query is None:
             raise ValueError("--sql requires both a database path and a query")
         return load_rows_from_sql(sql_db, sql_query)
+
+    if duckdb_db is not None:
+        if duckdb_query is None:
+            raise ValueError("--duckdb requires both a database path and a query")
+        return load_rows_from_duckdb(duckdb_db, duckdb_query)
 
     if fp is None:
         raise ValueError("No input provided")

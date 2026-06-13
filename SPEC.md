@@ -2,7 +2,7 @@
 
 ## Overview
 
-Chartroom is a Python CLI tool that uses matplotlib to generate PNG chart images from CSV, TSV, JSON, or SQLite data. It provides subcommands for different chart types with consistent options across all commands.
+Chartroom is a Python CLI tool that uses matplotlib to generate PNG chart images from CSV, TSV, JSON, SQLite, or DuckDB data. It provides subcommands for different chart types with consistent options across all commands.
 
 ## Installation
 
@@ -10,7 +10,7 @@ Chartroom is a Python CLI tool that uses matplotlib to generate PNG chart images
 pip install chartroom
 ```
 
-Dependencies: `click`, `matplotlib`
+Dependencies: `click`, `matplotlib`, `duckdb`
 
 ## Global Behavior
 
@@ -22,11 +22,12 @@ Dependencies: `click`, `matplotlib`
 
 ### Data Input (consistent across all subcommands)
 
-Three mutually exclusive input modes:
+Four mutually exclusive input modes:
 
 1. **File argument**: `chartroom bar data.csv` — reads from a file
 2. **Stdin**: `cat data.csv | chartroom bar` — reads from stdin when no file argument given
 3. **SQL mode**: `chartroom bar --sql db.sqlite "SELECT name, count FROM t"` — queries a SQLite database in **read-only** mode (`?mode=ro` URI)
+4. **DuckDB mode**: `chartroom bar --duckdb db.duckdb "SELECT name, count FROM t"` — queries a DuckDB database. Takes two arguments: DATABASE QUERY. The database may be a `.duckdb` file (opened **read-only**) or `:memory:` for an in-memory database. In-memory mode lets DuckDB query files directly off disk or in S3, e.g. `chartroom bar --duckdb :memory: "SELECT * FROM 's3://bucket/data.parquet'"`. Cannot be combined with `--sql`, the format flags, or a FILE argument.
 
 ### Format Flags (for file/stdin modes)
 
@@ -172,6 +173,7 @@ chartroom histogram --csv -y score results.csv --bins 20 --title "Score Distribu
 - CSV/TSV values are strings by default. The tool attempts to convert y-axis values to `float`. If conversion fails, the tool exits with an error message.
 - JSON values are used as-is (numbers stay numbers).
 - SQL results are used as-is.
+- DuckDB results are used as-is (numbers stay numbers).
 - X-axis values are treated as categorical strings (except for scatter, where they are converted to float).
 
 ## Error Handling
@@ -183,6 +185,8 @@ chartroom histogram --csv -y score results.csv --bins 20 --title "Score Distribu
 - SQL query error → error with the SQLite error message
 - `--sql` combined with `--csv`/`--tsv`/`--json` → error: mutually exclusive
 - `--sql` combined with FILE argument → error: mutually exclusive
+- DuckDB query error → error with the DuckDB error message
+- `--duckdb` combined with `--sql`, `--csv`/`--tsv`/`--json`, or FILE argument → error: mutually exclusive
 
 ## CLI Help
 
@@ -197,7 +201,7 @@ chartroom/
   __init__.py
   __main__.py
   cli.py          # Click group + subcommands
-  io.py           # Data loading (CSV, TSV, JSON, SQL)
+  io.py           # Data loading (CSV, TSV, JSON, SQL, DuckDB)
   charts.py       # Chart rendering functions
 tests/
   test_chartroom.py
