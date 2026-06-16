@@ -2,7 +2,7 @@
 
 *2026-02-14T16:00:04Z*
 
-Chartroom is a CLI tool for creating charts from data files (CSV, TSV, JSON, JSONL) or SQLite queries. Here are examples of each chart type it supports.
+Chartroom is a CLI tool for creating charts from data files (CSV, TSV, JSON, JSONL), SQLite queries, or DuckDB queries. Here are examples of each chart type it supports.
 
 ## Bar Chart
 
@@ -161,6 +161,10 @@ conn.close()
 ```
 
 ![3d79f8cd-2026-02-14](3d79f8cd-2026-02-14.png)
+
+### DuckDB queries
+
+Use --duckdb to query a `.duckdb` file (read-only) or `:memory:` to query Parquet/CSV/JSON files directly off disk or S3. See the dedicated [DuckDB demo](duckdb.md) for worked examples of querying a Parquet file, a persisted database, and aggregating a CSV on the fly.
 
 ## Styling Options
 

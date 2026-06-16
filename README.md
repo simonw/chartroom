@@ -5,7 +5,7 @@
 [![Tests](https://github.com/simonw/chartroom/actions/workflows/test.yml/badge.svg)](https://github.com/simonw/chartroom/actions/workflows/test.yml)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/simonw/chartroom/blob/master/LICENSE)
 
-CLI tool for creating charts from CSV, TSV, JSON, JSONL, or SQLite data using [matplotlib](https://matplotlib.org/). Designed to work well with [Showboat](https://github.com/simonw/showboat).
+CLI tool for creating charts from CSV, TSV, JSON, JSONL, SQLite, or DuckDB data using [matplotlib](https://matplotlib.org/). Designed to work well with [Showboat](https://github.com/simonw/showboat).
 
 ## Installation
 
@@ -41,7 +41,7 @@ chartroom --help
 
 ### Data input
 
-Provide data as a file, via stdin, or from a SQLite query:
+Provide data as a file, via stdin, or from a SQLite or DuckDB query:
 
 ```bash
 # From a CSV file (auto-detected)
@@ -58,7 +58,14 @@ cat data.csv | chartroom bar --csv
 
 # From SQLite
 chartroom bar --sql mydb.sqlite "SELECT name, count FROM items"
+
+# From DuckDB (a .duckdb file, or :memory: to query files directly)
+chartroom bar --duckdb mydb.duckdb "SELECT name, count FROM items"
+chartroom bar --duckdb :memory: "SELECT name, count FROM 'data.parquet'"
+chartroom bar --duckdb :memory: "SELECT name, count FROM 's3://bucket/data.parquet'"
 ```
+
+See the [DuckDB demo](https://github.com/simonw/chartroom/blob/main/demo/duckdb.md) for worked examples of querying Parquet files, persisted databases, and aggregating CSVs on the fly.
 
 ### Column selection
 
@@ -151,6 +158,8 @@ cog.out("\n".join(f"- `{l.strip()}`" for l in lines) + "\n")
 - `ggplot`
 - `grayscale`
 - `petroff10`
+- `petroff6`
+- `petroff8`
 - `seaborn-v0_8`
 - `seaborn-v0_8-bright`
 - `seaborn-v0_8-colorblind`
@@ -244,6 +253,11 @@ Options:
   --sql TEXT...                   Query a SQLite database. Takes two arguments:
                                   DATABASE QUERY. Example: --sql mydb.sqlite
                                   'SELECT name, count FROM items'
+  --duckdb TEXT...                Query a DuckDB database. Takes two arguments:
+                                  DATABASE QUERY. Use ':memory:' to query files
+                                  directly, locally or in S3. Example: --duckdb
+                                  :memory: "SELECT * FROM
+                                  's3://bucket/data.parquet'"
   --title TEXT                    Chart title, also prepended to generated alt
                                   text
   --xlabel TEXT                   X-axis label
@@ -291,6 +305,11 @@ Options:
   --sql TEXT...                   Query a SQLite database. Takes two arguments:
                                   DATABASE QUERY. Example: --sql mydb.sqlite
                                   'SELECT name, count FROM items'
+  --duckdb TEXT...                Query a DuckDB database. Takes two arguments:
+                                  DATABASE QUERY. Use ':memory:' to query files
+                                  directly, locally or in S3. Example: --duckdb
+                                  :memory: "SELECT * FROM
+                                  's3://bucket/data.parquet'"
   --title TEXT                    Chart title, also prepended to generated alt
                                   text
   --xlabel TEXT                   X-axis label
@@ -337,6 +356,11 @@ Options:
   --sql TEXT...                   Query a SQLite database. Takes two arguments:
                                   DATABASE QUERY. Example: --sql mydb.sqlite
                                   'SELECT name, count FROM items'
+  --duckdb TEXT...                Query a DuckDB database. Takes two arguments:
+                                  DATABASE QUERY. Use ':memory:' to query files
+                                  directly, locally or in S3. Example: --duckdb
+                                  :memory: "SELECT * FROM
+                                  's3://bucket/data.parquet'"
   --title TEXT                    Chart title, also prepended to generated alt
                                   text
   --xlabel TEXT                   X-axis label
@@ -385,6 +409,11 @@ Options:
   --sql TEXT...                   Query a SQLite database. Takes two arguments:
                                   DATABASE QUERY. Example: --sql mydb.sqlite
                                   'SELECT name, count FROM items'
+  --duckdb TEXT...                Query a DuckDB database. Takes two arguments:
+                                  DATABASE QUERY. Use ':memory:' to query files
+                                  directly, locally or in S3. Example: --duckdb
+                                  :memory: "SELECT * FROM
+                                  's3://bucket/data.parquet'"
   --title TEXT                    Chart title, also prepended to generated alt
                                   text
   --xlabel TEXT                   X-axis label
@@ -433,6 +462,11 @@ Options:
   --sql TEXT...                   Query a SQLite database. Takes two arguments:
                                   DATABASE QUERY. Example: --sql mydb.sqlite
                                   'SELECT name, count FROM items'
+  --duckdb TEXT...                Query a DuckDB database. Takes two arguments:
+                                  DATABASE QUERY. Use ':memory:' to query files
+                                  directly, locally or in S3. Example: --duckdb
+                                  :memory: "SELECT * FROM
+                                  's3://bucket/data.parquet'"
   --title TEXT                    Chart title, also prepended to generated alt
                                   text
   --xlabel TEXT                   X-axis label

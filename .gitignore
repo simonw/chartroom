@@ -10,3 +10,5 @@ venv
 dist/
 uv.lock
 demo/chart*.png
+demo/sales.duckdb
+demo/sales.parquet

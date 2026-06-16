@@ -138,6 +138,84 @@ def test_bar_sql():
         assert os.path.exists("out.png")
 
 
+def test_bar_duckdb_file():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        import duckdb
+
+        conn = duckdb.connect("test.duckdb")
+        conn.execute("CREATE TABLE t (name TEXT, value INTEGER)")
+        conn.execute("INSERT INTO t VALUES ('alice', 10), ('bob', 20)")
+        conn.close()
+        result = runner.invoke(
+            cli,
+            ["bar", "--duckdb", "test.duckdb", "SELECT * FROM t", "-o", "out.png"],
+        )
+        assert result.exit_code == 0, result.output
+        assert os.path.exists("out.png")
+
+
+def test_bar_duckdb_memory_queries_file():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("data.csv", "w") as f:
+            f.write("name,value\nalice,10\nbob,20\n")
+        result = runner.invoke(
+            cli,
+            [
+                "bar",
+                "--duckdb",
+                ":memory:",
+                "SELECT name, value FROM read_csv('data.csv')",
+                "-o",
+                "out.png",
+            ],
+        )
+        assert result.exit_code == 0, result.output
+        assert os.path.exists("out.png")
+
+
+def test_duckdb_query_error_is_clean():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli, ["bar", "--duckdb", ":memory:", "SELECT * FROM nonexistent"]
+        )
+        assert result.exit_code != 0
+        # Should be a clean ClickException, not an uncaught traceback
+        assert "Traceback" not in result.output
+        assert result.exception is None or isinstance(
+            result.exception, SystemExit
+        )
+
+
+def test_duckdb_with_csv_flag():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli, ["bar", "--duckdb", ":memory:", "SELECT 1", "--csv"]
+        )
+        assert result.exit_code != 0
+
+
+def test_duckdb_with_sql():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli,
+            [
+                "bar",
+                "--duckdb",
+                ":memory:",
+                "SELECT 1",
+                "--sql",
+                "x.db",
+                "SELECT 1",
+            ],
+        )
+        assert result.exit_code != 0
+
+
 def test_bar_explicit_columns():
     runner = CliRunner()
     with runner.isolated_filesystem():

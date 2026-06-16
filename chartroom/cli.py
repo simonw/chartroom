@@ -5,6 +5,7 @@ import sqlite3
 import sys
 
 import click
+import duckdb as duckdb_mod
 
 from chartroom.io import load_rows, resolve_columns
 from chartroom.charts import (
@@ -159,12 +160,17 @@ def _resolve_output(output: str | None) -> str:
     return os.path.abspath(candidate)
 
 
-def _load_data(file, csv, tsv, json, jsonl, sql):
+def _load_data(file, csv, tsv, json, jsonl, sql, duckdb):
     """Load data from the various input sources."""
     sql_db = None
     sql_query = None
+    duckdb_db = None
+    duckdb_query = None
     fmt = None
     fp = None
+
+    if sql and duckdb:
+        raise click.UsageError("--sql cannot be combined with --duckdb")
 
     if sql:
         if len(sql) != 2:
@@ -178,6 +184,18 @@ def _load_data(file, csv, tsv, json, jsonl, sql):
             )
         if file is not None:
             raise click.UsageError("--sql cannot be combined with a FILE argument")
+    elif duckdb:
+        if len(duckdb) != 2:
+            raise click.UsageError(
+                "--duckdb requires exactly two arguments: DATABASE QUERY"
+            )
+        duckdb_db, duckdb_query = duckdb
+        if csv or tsv or json or jsonl:
+            raise click.UsageError(
+                "--duckdb cannot be combined with --csv/--tsv/--json/--jsonl"
+            )
+        if file is not None:
+            raise click.UsageError("--duckdb cannot be combined with a FILE argument")
     else:
         if sum([csv, tsv, json, jsonl]) > 1:
             raise click.UsageError(
@@ -200,11 +218,19 @@ def _load_data(file, csv, tsv, json, jsonl, sql):
             stdin = click.get_binary_stream("stdin")
             if hasattr(stdin, "isatty") and stdin.isatty():
                 raise click.UsageError(
-                    "Provide a FILE argument, pipe data to stdin, or use --sql"
+                    "Provide a FILE argument, pipe data to stdin, "
+                    "or use --sql/--duckdb"
                 )
             fp = stdin
 
-    return load_rows(fp=fp, format=fmt, sql_db=sql_db, sql_query=sql_query)
+    return load_rows(
+        fp=fp,
+        format=fmt,
+        sql_db=sql_db,
+        sql_query=sql_query,
+        duckdb_db=duckdb_db,
+        duckdb_query=duckdb_query,
+    )
 
 
 # Shared options applied to all chart subcommands
@@ -230,6 +256,17 @@ _common_options = [
         help=(
             "Query a SQLite database. Takes two arguments: DATABASE QUERY. "
             "Example: --sql mydb.sqlite 'SELECT name, count FROM items'"
+        ),
+    ),
+    click.option(
+        "--duckdb",
+        nargs=2,
+        default=None,
+        help=(
+            "Query a DuckDB database. Takes two arguments: DATABASE QUERY. "
+            "Use ':memory:' to query files directly, locally or in S3. "
+            "Example: --duckdb :memory: "
+            "\"SELECT * FROM 's3://bucket/data.parquet'\""
         ),
     ),
     click.option(
@@ -296,6 +333,7 @@ def _run_chart(
     json,
     jsonl,
     sql,
+    duckdb,
     title,
     xlabel,
     ylabel,
@@ -309,7 +347,7 @@ def _run_chart(
     output_format = extra.pop("output_format", "path")
     alt = extra.pop("alt", None)
     try:
-        rows = _load_data(file, csv, tsv, json, jsonl, sql)
+        rows = _load_data(file, csv, tsv, json, jsonl, sql, duckdb)
         x_col, y_cols = resolve_columns(rows, x, y, chart_type=chart_type)
         output_path = _resolve_output(output)
         render_fn(
@@ -335,7 +373,7 @@ def _run_chart(
             click.echo(_format_output(output_path, output_format, alt_text))
     except click.UsageError:
         raise
-    except (ValueError, sqlite3.OperationalError) as e:
+    except (ValueError, sqlite3.OperationalError, duckdb_mod.Error) as e:
         raise click.ClickException(str(e))
 
 
@@ -374,6 +412,7 @@ def bar(
     json,
     jsonl,
     sql,
+    duckdb,
     title,
     xlabel,
     ylabel,
@@ -406,6 +445,7 @@ def bar(
         json,
         jsonl,
         sql,
+        duckdb,
         title,
         xlabel,
         ylabel,
@@ -430,6 +470,7 @@ def line(
     json,
     jsonl,
     sql,
+    duckdb,
     title,
     xlabel,
     ylabel,
@@ -461,6 +502,7 @@ def line(
         json,
         jsonl,
         sql,
+        duckdb,
         title,
         xlabel,
         ylabel,
@@ -485,6 +527,7 @@ def scatter(
     json,
     jsonl,
     sql,
+    duckdb,
     title,
     xlabel,
     ylabel,
@@ -515,6 +558,7 @@ def scatter(
         json,
         jsonl,
         sql,
+        duckdb,
         title,
         xlabel,
         ylabel,
@@ -539,6 +583,7 @@ def pie(
     json,
     jsonl,
     sql,
+    duckdb,
     title,
     xlabel,
     ylabel,
@@ -571,6 +616,7 @@ def pie(
         json,
         jsonl,
         sql,
+        duckdb,
         title,
         xlabel,
         ylabel,
@@ -596,6 +642,7 @@ def histogram(
     json,
     jsonl,
     sql,
+    duckdb,
     title,
     xlabel,
     ylabel,
@@ -629,6 +676,7 @@ def histogram(
         json,
         jsonl,
         sql,
+        duckdb,
         title,
         xlabel,
         ylabel,
