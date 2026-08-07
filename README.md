@@ -126,6 +126,48 @@ If a `--title` is set, it is prepended to the generated alt text (e.g. `Team Sco
 
 See the [alt text demo](https://github.com/simonw/chartroom/blob/main/demo/alt-text.md) for worked examples of every chart type and output format.
 
+### Axis limits
+
+By default matplotlib scales each axis to fit the data. Use `--xlim` and `--ylim` to set the range explicitly — each takes two numbers, `MIN` and `MAX`:
+
+```bash
+# Force a 0-100 y-axis so several charts can be compared side by side
+chartroom bar --csv data.csv -y revenue --ylim 0 100
+
+# Zoom a scatter plot to a region of interest
+chartroom scatter --csv data.csv -x height -y weight --xlim 150 200 --ylim 40 120
+
+# Bound a histogram's value range and its counts
+chartroom histogram --csv -y score data.csv --xlim 0 100 --ylim 0 25
+```
+
+Passing `MAX` below `MIN` reverses the axis, which is matplotlib's normal behaviour:
+
+```bash
+chartroom scatter --csv data.csv --ylim 100 0
+```
+
+Which options each chart accepts:
+
+| Command | `--xlim` | `--ylim` |
+| --- | --- | --- |
+| `scatter` | yes | yes |
+| `histogram` | yes | yes |
+| `line` | yes | yes |
+| `bar` | no | yes |
+| `pie` | no | no |
+
+On `line`, points are plotted at index positions `0, 1, 2, ...`, so `--xlim` crops by position rather than by the value in your x column — `--xlim 0 4` shows the first five points whatever their labels:
+
+```bash
+# First five months only
+chartroom line --csv data.csv -x month -y revenue --xlim 0 4
+```
+
+Cropping the x-axis does not rescale the y-axis: matplotlib autoscales y to the full dataset before the limit applies, so a zoomed line chart can show more headroom than the visible points need. Pass `--ylim` as well if you want the y-axis to match the region you cropped to.
+
+`--xlim` is not offered on `bar`, whose bars are likewise positional but where cropping mid-bar is rarely what anyone wants. Pie charts have no axes at all.
+
 ### Styling
 
 ```bash
@@ -230,6 +272,7 @@ Usage: chartroom bar [OPTIONS] [FILE]
     chartroom bar --csv data.csv
     chartroom bar --csv data.csv -x region -y revenue -o sales.png
     chartroom bar --csv -x name -y q1 -y q2 data.csv
+    chartroom bar --csv data.csv -y revenue --ylim 0 100
     cat data.csv | chartroom bar --csv -f markdown
     chartroom bar --sql mydb.sqlite "SELECT name, count FROM items"
 
@@ -264,6 +307,8 @@ Options:
                                   when -f is path (the default). When omitted, a
                                   description is generated from the chart type
                                   and data.
+  --ylim FLOAT...                 Y-axis limits. Takes two numbers: MIN MAX.
+                                  Example: --ylim 0 100
   --help                          Show this message and exit.
 ```
 
@@ -274,10 +319,15 @@ Usage: chartroom line [OPTIONS] [FILE]
 
   Create a line chart from columnar data.
 
+  Points are plotted at index positions 0, 1, 2, ... so --xlim crops by
+  position, not by x-column value: --xlim 0 4 shows the first five points.
+
   Examples:
     chartroom line --csv data.csv
     chartroom line --csv data.csv -x month -y revenue
     chartroom line --csv -x date -y temp -y humidity data.csv
+    chartroom line --csv data.csv -y revenue --ylim 0 100
+    chartroom line --csv data.csv --xlim 0 4
     chartroom line --csv data.csv -f json
 
 Options:
@@ -311,6 +361,10 @@ Options:
                                   when -f is path (the default). When omitted, a
                                   description is generated from the chart type
                                   and data.
+  --xlim FLOAT...                 X-axis limits. Takes two numbers: MIN MAX.
+                                  Example: --xlim 0 100
+  --ylim FLOAT...                 Y-axis limits. Takes two numbers: MIN MAX.
+                                  Example: --ylim 0 100
   --help                          Show this message and exit.
 ```
 
@@ -324,6 +378,7 @@ Usage: chartroom scatter [OPTIONS] [FILE]
   Examples:
     chartroom scatter --csv data.csv
     chartroom scatter --csv data.csv -x height -y weight
+    chartroom scatter --csv data.csv --xlim 0 100 --ylim 0 50
     chartroom scatter --csv data.csv -f html --alt "Height vs Weight"
 
 Options:
@@ -357,6 +412,10 @@ Options:
                                   when -f is path (the default). When omitted, a
                                   description is generated from the chart type
                                   and data.
+  --xlim FLOAT...                 X-axis limits. Takes two numbers: MIN MAX.
+                                  Example: --xlim 0 100
+  --ylim FLOAT...                 Y-axis limits. Takes two numbers: MIN MAX.
+                                  Example: --ylim 0 100
   --help                          Show this message and exit.
 ```
 
@@ -415,11 +474,13 @@ Usage: chartroom histogram [OPTIONS] [FILE]
 
   Create a histogram showing the distribution of a numeric column.
 
-  Requires -y to specify the column. Use --bins to control bucket count.
+  Requires -y to specify the column. Use --bins to control bucket count. --xlim
+  bounds the value range, --ylim bounds the counts.
 
   Examples:
     chartroom histogram --csv -y score data.csv
     chartroom histogram --csv -y score data.csv --bins 20
+    chartroom histogram --csv -y score data.csv --xlim 0 100
     chartroom histogram --csv -y score data.csv -f alt
 
 Options:
@@ -454,6 +515,10 @@ Options:
                                   description is generated from the chart type
                                   and data.
   --bins INTEGER                  Number of histogram bins
+  --xlim FLOAT...                 X-axis limits. Takes two numbers: MIN MAX.
+                                  Example: --xlim 0 100
+  --ylim FLOAT...                 Y-axis limits. Takes two numbers: MIN MAX.
+                                  Example: --ylim 0 100
   --help                          Show this message and exit.
 ```
 
