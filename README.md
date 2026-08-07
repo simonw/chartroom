@@ -126,6 +126,39 @@ If a `--title` is set, it is prepended to the generated alt text (e.g. `Team Sco
 
 See the [alt text demo](https://github.com/simonw/chartroom/blob/main/demo/alt-text.md) for worked examples of every chart type and output format.
 
+### Axis limits
+
+By default matplotlib scales each axis to fit the data. Use `--xlim` and `--ylim` to set the range explicitly — each takes two numbers, `MIN` and `MAX`:
+
+```bash
+# Force a 0-100 y-axis so several charts can be compared side by side
+chartroom bar --csv data.csv -y revenue --ylim 0 100
+
+# Zoom a scatter plot to a region of interest
+chartroom scatter --csv data.csv -x height -y weight --xlim 150 200 --ylim 40 120
+
+# Bound a histogram's value range and its counts
+chartroom histogram --csv -y score data.csv --xlim 0 100 --ylim 0 25
+```
+
+Passing `MAX` below `MIN` reverses the axis, which is matplotlib's normal behaviour:
+
+```bash
+chartroom scatter --csv data.csv --ylim 100 0
+```
+
+Which options each chart accepts:
+
+| Command | `--xlim` | `--ylim` |
+| --- | --- | --- |
+| `scatter` | yes | yes |
+| `histogram` | yes | yes |
+| `bar` | no | yes |
+| `line` | no | no |
+| `pie` | no | no |
+
+`--xlim` is deliberately not offered on `bar`, whose x-axis plots categories at index positions rather than data values, so a limit there would crop by category number rather than by any value in your data. Pie charts have no axes at all.
+
 ### Styling
 
 ```bash
@@ -230,6 +263,7 @@ Usage: chartroom bar [OPTIONS] [FILE]
     chartroom bar --csv data.csv
     chartroom bar --csv data.csv -x region -y revenue -o sales.png
     chartroom bar --csv -x name -y q1 -y q2 data.csv
+    chartroom bar --csv data.csv -y revenue --ylim 0 100
     cat data.csv | chartroom bar --csv -f markdown
     chartroom bar --sql mydb.sqlite "SELECT name, count FROM items"
 
@@ -264,6 +298,8 @@ Options:
                                   when -f is path (the default). When omitted, a
                                   description is generated from the chart type
                                   and data.
+  --ylim FLOAT...                 Y-axis limits. Takes two numbers: MIN MAX.
+                                  Example: --ylim 0 100
   --help                          Show this message and exit.
 ```
 
@@ -324,6 +360,7 @@ Usage: chartroom scatter [OPTIONS] [FILE]
   Examples:
     chartroom scatter --csv data.csv
     chartroom scatter --csv data.csv -x height -y weight
+    chartroom scatter --csv data.csv --xlim 0 100 --ylim 0 50
     chartroom scatter --csv data.csv -f html --alt "Height vs Weight"
 
 Options:
@@ -357,6 +394,10 @@ Options:
                                   when -f is path (the default). When omitted, a
                                   description is generated from the chart type
                                   and data.
+  --xlim FLOAT...                 X-axis limits. Takes two numbers: MIN MAX.
+                                  Example: --xlim 0 100
+  --ylim FLOAT...                 Y-axis limits. Takes two numbers: MIN MAX.
+                                  Example: --ylim 0 100
   --help                          Show this message and exit.
 ```
 
@@ -415,11 +456,13 @@ Usage: chartroom histogram [OPTIONS] [FILE]
 
   Create a histogram showing the distribution of a numeric column.
 
-  Requires -y to specify the column. Use --bins to control bucket count.
+  Requires -y to specify the column. Use --bins to control bucket count. --xlim
+  bounds the value range, --ylim bounds the counts.
 
   Examples:
     chartroom histogram --csv -y score data.csv
     chartroom histogram --csv -y score data.csv --bins 20
+    chartroom histogram --csv -y score data.csv --xlim 0 100
     chartroom histogram --csv -y score data.csv -f alt
 
 Options:
@@ -454,6 +497,10 @@ Options:
                                   description is generated from the chart type
                                   and data.
   --bins INTEGER                  Number of histogram bins
+  --xlim FLOAT...                 X-axis limits. Takes two numbers: MIN MAX.
+                                  Example: --xlim 0 100
+  --ylim FLOAT...                 Y-axis limits. Takes two numbers: MIN MAX.
+                                  Example: --ylim 0 100
   --help                          Show this message and exit.
 ```
 

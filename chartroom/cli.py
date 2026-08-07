@@ -278,6 +278,24 @@ def common_options(fn):
     return fn
 
 
+# Axis limits. Not in _common_options: pie has no axes, and bar/line plot
+# categories at index positions 0..n-1, so only --ylim is meaningful there.
+xlim_option = click.option(
+    "--xlim",
+    nargs=2,
+    type=float,
+    default=None,
+    help="X-axis limits. Takes two numbers: MIN MAX. Example: --xlim 0 100",
+)
+ylim_option = click.option(
+    "--ylim",
+    nargs=2,
+    type=float,
+    default=None,
+    help="Y-axis limits. Takes two numbers: MIN MAX. Example: --ylim 0 100",
+)
+
+
 @click.group()
 @click.version_option()
 def cli():
@@ -364,6 +382,7 @@ def _render_histogram_wrapper(rows, x_col, y_cols, output_path, bins=10, **kwarg
 
 @cli.command()
 @common_options
+@ylim_option
 def bar(
     file,
     output,
@@ -383,6 +402,7 @@ def bar(
     dpi,
     output_format,
     alt,
+    ylim,
 ):
     """Create a bar chart from columnar data.
 
@@ -391,6 +411,7 @@ def bar(
       chartroom bar --csv data.csv
       chartroom bar --csv data.csv -x region -y revenue -o sales.png
       chartroom bar --csv -x name -y q1 -y q2 data.csv
+      chartroom bar --csv data.csv -y revenue --ylim 0 100
       cat data.csv | chartroom bar --csv -f markdown
       chartroom bar --sql mydb.sqlite "SELECT name, count FROM items"
     """
@@ -415,6 +436,7 @@ def bar(
         dpi,
         output_format=output_format,
         alt=alt,
+        ylim=ylim,
     )
 
 
@@ -475,6 +497,8 @@ def line(
 
 @cli.command()
 @common_options
+@xlim_option
+@ylim_option
 def scatter(
     file,
     output,
@@ -494,6 +518,8 @@ def scatter(
     dpi,
     output_format,
     alt,
+    xlim,
+    ylim,
 ):
     """Create a scatter plot from columnar data.
 
@@ -501,6 +527,7 @@ def scatter(
     Examples:
       chartroom scatter --csv data.csv
       chartroom scatter --csv data.csv -x height -y weight
+      chartroom scatter --csv data.csv --xlim 0 100 --ylim 0 50
       chartroom scatter --csv data.csv -f html --alt "Height vs Weight"
     """
     _run_chart(
@@ -524,6 +551,8 @@ def scatter(
         dpi,
         output_format=output_format,
         alt=alt,
+        xlim=xlim,
+        ylim=ylim,
     )
 
 
@@ -586,6 +615,8 @@ def pie(
 @cli.command()
 @common_options
 @click.option("--bins", default=10, type=int, help="Number of histogram bins")
+@xlim_option
+@ylim_option
 def histogram(
     file,
     output,
@@ -606,15 +637,19 @@ def histogram(
     bins,
     output_format,
     alt,
+    xlim,
+    ylim,
 ):
     """Create a histogram showing the distribution of a numeric column.
 
     Requires -y to specify the column. Use --bins to control bucket count.
+    --xlim bounds the value range, --ylim bounds the counts.
 
     \b
     Examples:
       chartroom histogram --csv -y score data.csv
       chartroom histogram --csv -y score data.csv --bins 20
+      chartroom histogram --csv -y score data.csv --xlim 0 100
       chartroom histogram --csv -y score data.csv -f alt
     """
     _run_chart(
@@ -639,6 +674,8 @@ def histogram(
         bins=bins,
         output_format=output_format,
         alt=alt,
+        xlim=xlim,
+        ylim=ylim,
     )
 
 

@@ -599,3 +599,152 @@ def test_histogram_with_title():
         )
         assert result.exit_code == 0, result.output
         assert os.path.exists("out.png")
+
+
+# --- Axis limits ---
+
+
+def _render_pair(runner, csv_text, base_args, limit_args):
+    """Render the same data with and without limit args, return the two PNGs."""
+    with open("data.csv", "w") as f:
+        f.write(csv_text)
+    plain = runner.invoke(cli, base_args + ["-o", "plain.png"])
+    assert plain.exit_code == 0, plain.output
+    limited = runner.invoke(cli, base_args + ["-o", "limited.png"] + limit_args)
+    assert limited.exit_code == 0, limited.output
+    return open("plain.png", "rb").read(), open("limited.png", "rb").read()
+
+
+def test_scatter_xlim_changes_output():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        plain, limited = _render_pair(
+            runner,
+            "x,y\n1,2\n3,4\n5,3\n7,8\n",
+            ["scatter", "--csv", "data.csv"],
+            ["--xlim", "0", "100"],
+        )
+        assert plain != limited
+
+
+def test_scatter_ylim_changes_output():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        plain, limited = _render_pair(
+            runner,
+            "x,y\n1,2\n3,4\n5,3\n7,8\n",
+            ["scatter", "--csv", "data.csv"],
+            ["--ylim", "-50", "50"],
+        )
+        assert plain != limited
+
+
+def test_histogram_xlim_changes_output():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        plain, limited = _render_pair(
+            runner,
+            "score\n85\n90\n78\n92\n88\n",
+            ["histogram", "--csv", "-y", "score", "data.csv"],
+            ["--xlim", "0", "200"],
+        )
+        assert plain != limited
+
+
+def test_histogram_ylim_changes_output():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        plain, limited = _render_pair(
+            runner,
+            "score\n85\n90\n78\n92\n88\n",
+            ["histogram", "--csv", "-y", "score", "data.csv"],
+            ["--ylim", "0", "25"],
+        )
+        assert plain != limited
+
+
+def test_bar_ylim_changes_output():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        plain, limited = _render_pair(
+            runner,
+            "name,value\nalice,10\nbob,20\ncharlie,15\n",
+            ["bar", "--csv", "data.csv"],
+            ["--ylim", "0", "100"],
+        )
+        assert plain != limited
+
+
+def test_bar_has_no_xlim():
+    """Bar x-axis is category index space, so --xlim is deliberately not offered."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("data.csv", "w") as f:
+            f.write("name,value\nalice,10\nbob,20\n")
+        result = runner.invoke(
+            cli, ["bar", "--csv", "data.csv", "-o", "out.png", "--xlim", "0", "1"]
+        )
+        assert result.exit_code != 0
+        assert "no such option" in result.output.lower()
+
+
+def test_axis_limits_reversed_is_allowed():
+    """MAX below MIN reverses the axis — matplotlib behaviour, not an error."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        plain, reversed_ = _render_pair(
+            runner,
+            "x,y\n1,2\n3,4\n5,3\n7,8\n",
+            ["scatter", "--csv", "data.csv"],
+            ["--ylim", "100", "0"],
+        )
+        assert plain != reversed_
+
+
+def test_axis_limits_accept_negative_values():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("data.csv", "w") as f:
+            f.write("x,y\n1,2\n3,4\n")
+        result = runner.invoke(
+            cli,
+            ["scatter", "--csv", "data.csv", "-o", "out.png", "--ylim", "-10", "-1"],
+        )
+        assert result.exit_code == 0, result.output
+        assert os.path.exists("out.png")
+
+
+def test_axis_limits_require_two_values():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("data.csv", "w") as f:
+            f.write("x,y\n1,2\n3,4\n")
+        result = runner.invoke(
+            cli, ["scatter", "--csv", "data.csv", "-o", "out.png", "--xlim", "5"]
+        )
+        assert result.exit_code != 0
+
+
+def test_axis_limits_reject_non_numeric():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("data.csv", "w") as f:
+            f.write("x,y\n1,2\n3,4\n")
+        result = runner.invoke(
+            cli, ["scatter", "--csv", "data.csv", "-o", "out.png", "--xlim", "a", "b"]
+        )
+        assert result.exit_code != 0
+        assert "not a valid float" in result.output.lower()
+
+
+def test_axis_limits_in_help():
+    runner = CliRunner()
+    for command, expected in [
+        ("scatter", ["--xlim", "--ylim"]),
+        ("histogram", ["--xlim", "--ylim"]),
+        ("bar", ["--ylim"]),
+    ]:
+        result = runner.invoke(cli, [command, "--help"])
+        assert result.exit_code == 0
+        for option in expected:
+            assert option in result.output, f"{option} missing from {command} --help"
