@@ -153,11 +153,20 @@ Which options each chart accepts:
 | --- | --- | --- |
 | `scatter` | yes | yes |
 | `histogram` | yes | yes |
+| `line` | yes | yes |
 | `bar` | no | yes |
-| `line` | no | no |
 | `pie` | no | no |
 
-`--xlim` is deliberately not offered on `bar`, whose x-axis plots categories at index positions rather than data values, so a limit there would crop by category number rather than by any value in your data. Pie charts have no axes at all.
+On `line`, points are plotted at index positions `0, 1, 2, ...`, so `--xlim` crops by position rather than by the value in your x column — `--xlim 0 4` shows the first five points whatever their labels:
+
+```bash
+# First five months only
+chartroom line --csv data.csv -x month -y revenue --xlim 0 4
+```
+
+Cropping the x-axis does not rescale the y-axis: matplotlib autoscales y to the full dataset before the limit applies, so a zoomed line chart can show more headroom than the visible points need. Pass `--ylim` as well if you want the y-axis to match the region you cropped to.
+
+`--xlim` is not offered on `bar`, whose bars are likewise positional but where cropping mid-bar is rarely what anyone wants. Pie charts have no axes at all.
 
 ### Styling
 
@@ -310,10 +319,15 @@ Usage: chartroom line [OPTIONS] [FILE]
 
   Create a line chart from columnar data.
 
+  Points are plotted at index positions 0, 1, 2, ... so --xlim crops by
+  position, not by x-column value: --xlim 0 4 shows the first five points.
+
   Examples:
     chartroom line --csv data.csv
     chartroom line --csv data.csv -x month -y revenue
     chartroom line --csv -x date -y temp -y humidity data.csv
+    chartroom line --csv data.csv -y revenue --ylim 0 100
+    chartroom line --csv data.csv --xlim 0 4
     chartroom line --csv data.csv -f json
 
 Options:
@@ -347,6 +361,10 @@ Options:
                                   when -f is path (the default). When omitted, a
                                   description is generated from the chart type
                                   and data.
+  --xlim FLOAT...                 X-axis limits. Takes two numbers: MIN MAX.
+                                  Example: --xlim 0 100
+  --ylim FLOAT...                 Y-axis limits. Takes two numbers: MIN MAX.
+                                  Example: --ylim 0 100
   --help                          Show this message and exit.
 ```
 

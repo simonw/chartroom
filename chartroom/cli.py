@@ -442,6 +442,8 @@ def bar(
 
 @cli.command()
 @common_options
+@xlim_option
+@ylim_option
 def line(
     file,
     output,
@@ -461,14 +463,21 @@ def line(
     dpi,
     output_format,
     alt,
+    xlim,
+    ylim,
 ):
     """Create a line chart from columnar data.
+
+    Points are plotted at index positions 0, 1, 2, ... so --xlim crops by
+    position, not by x-column value: --xlim 0 4 shows the first five points.
 
     \b
     Examples:
       chartroom line --csv data.csv
       chartroom line --csv data.csv -x month -y revenue
       chartroom line --csv -x date -y temp -y humidity data.csv
+      chartroom line --csv data.csv -y revenue --ylim 0 100
+      chartroom line --csv data.csv --xlim 0 4
       chartroom line --csv data.csv -f json
     """
     _run_chart(
@@ -492,6 +501,8 @@ def line(
         dpi,
         output_format=output_format,
         alt=alt,
+        xlim=xlim,
+        ylim=ylim,
     )
 
 

@@ -123,6 +123,8 @@ def render_line(
     height: float = 6,
     style: Optional[str] = None,
     dpi: int = 100,
+    xlim: Optional[tuple] = None,
+    ylim: Optional[tuple] = None,
 ):
     _apply_style(style)
     fig, ax = _make_figure(width, height)
@@ -138,7 +140,16 @@ def render_line(
     ax.set_xticklabels(x_labels)
 
     _finalize(
-        fig, ax, output_path, title, xlabel, ylabel, dpi, show_legend=len(y_cols) > 1
+        fig,
+        ax,
+        output_path,
+        title,
+        xlabel,
+        ylabel,
+        dpi,
+        show_legend=len(y_cols) > 1,
+        xlim=xlim,
+        ylim=ylim,
     )
 
 

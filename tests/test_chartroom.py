@@ -675,6 +675,31 @@ def test_bar_ylim_changes_output():
         assert plain != limited
 
 
+def test_line_xlim_changes_output():
+    """Line x-axis is category index space, so --xlim crops by position."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        plain, limited = _render_pair(
+            runner,
+            "month,revenue\njan,10\nfeb,20\nmar,15\napr,30\n",
+            ["line", "--csv", "data.csv"],
+            ["--xlim", "0", "1"],
+        )
+        assert plain != limited
+
+
+def test_line_ylim_changes_output():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        plain, limited = _render_pair(
+            runner,
+            "month,revenue\njan,10\nfeb,20\nmar,15\napr,30\n",
+            ["line", "--csv", "data.csv"],
+            ["--ylim", "0", "100"],
+        )
+        assert plain != limited
+
+
 def test_bar_has_no_xlim():
     """Bar x-axis is category index space, so --xlim is deliberately not offered."""
     runner = CliRunner()
@@ -742,6 +767,7 @@ def test_axis_limits_in_help():
     for command, expected in [
         ("scatter", ["--xlim", "--ylim"]),
         ("histogram", ["--xlim", "--ylim"]),
+        ("line", ["--xlim", "--ylim"]),
         ("bar", ["--ylim"]),
     ]:
         result = runner.invoke(cli, [command, "--help"])
