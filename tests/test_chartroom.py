@@ -599,3 +599,20 @@ def test_histogram_with_title():
         )
         assert result.exit_code == 0, result.output
         assert os.path.exists("out.png")
+
+
+def test_invalid_style_reports_clean_error():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("data.csv", "w") as f:
+            f.write("name,value\nalice,10\nbob,20\n")
+        result = runner.invoke(
+            cli,
+            ["bar", "--csv", "--style", "no-such-style-xyz",
+             "data.csv", "-o", "out.png"],
+        )
+        assert result.exit_code == 1
+        assert isinstance(result.exception, SystemExit)
+        assert "Error" in result.output
+        assert "Traceback" not in result.output
+        assert not os.path.exists("out.png")

@@ -335,7 +335,7 @@ def _run_chart(
             click.echo(_format_output(output_path, output_format, alt_text))
     except click.UsageError:
         raise
-    except (ValueError, sqlite3.OperationalError) as e:
+    except (ValueError, OSError, sqlite3.OperationalError) as e:
         raise click.ClickException(str(e))
 
 
